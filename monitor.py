@@ -20,15 +20,19 @@ def findNewFiles(id, lastTime=None):
     
     Arguments:
     - `id`: A synapse Id
-    - `lastTime`: time to check for new files since 
+    - `lastTime`: time to check for new files since defaults to lastAuditTimeStamp in project annotation or 10 day
     """
     QUERY = "select id, name, versionNumber, modifiedOn, modifiedByPrincipalId, nodeType from entity where benefactorId=='%s' and modifiedOn>%i" 
     t = calendar.timegm(time.gmtime())*1000
     project = syn.get(id)
-    #TODO last time if none should be set to lastAuditTimeStamp annotation
-    #
-    lastTime = t - ONEDAY*10 if lastTime==None else lastTime
-    #
+    #Determine the last audit time or overide with lastTime
+    if lastTime is None:  #No time specified
+        lastTime = project.get('lastAuditTimeStamp', None)
+        if lastTime is None:  #No time specified and no lastAuditTimeStamp set
+            lastTime = t - ONEDAY*1.2
+        else: #lastTime came from annotation strip out from list
+            lastTime = lastTime[0]  
+    print t, lastTime, id, (t-lastTime)/ONEDAY
     results = list(syn.chunkedQuery(QUERY % (id, lastTime)))
     #Add the project and other metadata
     for r in results:
@@ -38,32 +42,23 @@ def findNewFiles(id, lastTime=None):
         r['user'] = syn.getUserProfile(r['entity.modifiedByPrincipalId'])['userName']
         r['type'] = nodeTypes[r['entity.nodeType']]
         
-    #TODO update lastAuditTimeStamp time on id to t
-    #
+    #Set lastAuditTimeStamp
+    project.lastAuditTimeStamp = t
+    try:
+        project = syn.store(project)
+    except synapseclient.exceptions.SynapseHTTPError:
+        pass
     return results
 
 def composeMessage(entityList):
     """Composes a message with the contents of entityList """
     
-# """<head><script src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script><style type="text/css">
-# th, td {
-#   padding: 3px !important;
-# }
-
-# /* Sortable tables */
-# table.sortable thead {
-#     background-color: #333;
-#     color: #cccccc;
-#     font-weight: bold;
-#     cursor: default;
-# }</head><body>"""
-
     messageHead=('<table border=1><tr>'
                  '<th>Project</th>'
                  '<th>Entity</th>'
                  '<th>Ver.</th>'
                  '<th>Type</th>'
-                 '<th>Date</th>'
+                 '<th>Change Time</th>'
                  '<th>Contributor</th></tr>')
     lines = [('<tr><td><a href="https://www.synapse.org/#!Synapse:%(projectId)s">%(projectName)s</a></td>'
               '<td><a href="https://www.synapse.org/#!Synapse:%(entity.id)s">(%(entity.id)s)</a> %(entity.name)s </td>'
@@ -83,7 +78,7 @@ def build_parser():
                         help='User Id of individual to send report, defaults to current user.')
     parser.add_argument('--projects', '-p', metavar='projects', type=str, nargs='*',
             help='Synapse IDs of projects to be monitored.')
-    parser.add_argument('--days', '-d', metavar='days', type=str, default=1,
+    parser.add_argument('--days', '-d', metavar='days', type=int, default=None,
             help='Find modifications in the last days')
     return parser
 
@@ -92,12 +87,16 @@ if __name__ == '__main__':
     p = mp.Pool(6)
     args = build_parser().parse_args()
     args.userId = syn.getUserProfile()['ownerId'] if args.userId is None else args.userId
- 
-    print args
+    args.days = None if args.days is None else calendar.timegm(time.gmtime())*1000 - args.days*ONEDAY
+
+    print args.days
 
     #query each project then combine into long list
-    entityList = map(findNewFiles, args.projects)
+    entityList = p.map(lambda project: findNewFiles(project, args.days), args.projects)
     entityList = [item for sublist in entityList for item in sublist]
+    #Filter out projects and folders
+    entityList = [e for e in entityList if e['entity.nodeType'] not in [2, 4]]
+
 
     #Prepare and send Message
     syn.sendMessage([args.userId], 
