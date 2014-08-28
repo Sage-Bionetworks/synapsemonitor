@@ -32,7 +32,7 @@ def findNewFiles(args, id):
     for r in results:
         r['projectId'] = id
         r['projectName'] = project.name
-        r['date'] = synapseclient.utils.from_unix_epoch_time(r['entity.modifiedOn']).strftime("%d-%b-%Y %H:%M")
+        r['date'] = synapseclient.utils.from_unix_epoch_time(r['entity.modifiedOn']).strftime("%b/%d/%Y %H:%M")
         r['user'] = syn.getUserProfile(r['entity.modifiedByPrincipalId'])['userName']
         r['type'] = nodeTypes[r['entity.nodeType']]
         
@@ -48,13 +48,14 @@ def findNewFiles(args, id):
 def composeMessage(entityList):
     """Composes a message with the contents of entityList """
     
-    messageHead=('<table border=1><tr>'
+    messageHead=('<h4>Time of Audit: %s </h4>'%time.ctime() +
+                 '<table border=1><tr>'
                  '<th>Project</th>'
                  '<th>Entity</th>'
                  '<th>Ver.</th>'
                  '<th>Type</th>'
                  '<th>Change Time</th>'
-                 '<th>Contributor</th></tr>')
+                 '<th>Contributor</th></tr>'  )
     lines = [('<tr><td><a href="https://www.synapse.org/#!Synapse:%(projectId)s">%(projectName)s</a></td>'
               '<td><a href="https://www.synapse.org/#!Synapse:%(entity.id)s">(%(entity.id)s)</a> %(entity.name)s </td>'
               '<td>%(entity.versionNumber)s</td>'
@@ -98,11 +99,11 @@ entityList = p.map(lambda project: findNewFiles(args, project), args.projects)
 entityList = [item for sublist in entityList for item in sublist]
 #Filter out projects and folders
 entityList = [e for e in entityList if e['entity.nodeType'] not in [2, 4]]
-
+print 'Total number of entities = ', len(entityList)
 
 #Prepare and send Message
 syn.sendMessage([args.userId], 
-                'New TCGA files at: %s' %time.ctime(),
+                'New TCGA files',
                 composeMessage(entityList),
                 contentType = 'text/html')
 
