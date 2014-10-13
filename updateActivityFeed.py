@@ -130,7 +130,11 @@ if __name__ == '__main__':
             tStart = t-datetime.timedelta(days=7) 
             headerText = '##week of %s\n' %tStart.strftime('%d-%B-%Y')
         else:
-            tStart = datetime.datetime(t.year, t.month-1, 1)
+            year, month= divmod(t.month-1, 12)
+            if month == 0: 
+                month = 12
+                year = year -1
+            tStart = datetime.datetime(t.year + year, month, 1)
             headerText = '##%s\n' %tStart.strftime('%B-%Y')
         print tStart
         df = getChanges(tStart, t, projectId)
