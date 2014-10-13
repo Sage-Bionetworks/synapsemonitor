@@ -7,8 +7,6 @@ import argparse
 import dateutil.parser
 import pandas as pd
 import synapseclient
-syn = synapseclient.Synapse(skip_checks=True)
-syn.login(silent=True)
 
 MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
           'August', 'September', 'October', 'November', 'December']
@@ -112,6 +110,12 @@ if __name__ == '__main__':
     projectId = args.project
     deltaTime = args.interval
     earliestTime = dateutil.parser.parse(args.earliestTime)
+
+    if args.configPath is not None:
+        syn=synapseclient.Synapse(skip_checks=True, configPath=args.configPath)
+    else:
+        syn=synapseclient.Synapse(skip_checks=True)
+    syn.login(silent=True) 
 
 
     today =  datetime.datetime.today()
