@@ -117,13 +117,13 @@ if __name__ == '__main__':
         syn=synapseclient.Synapse(skip_checks=True)
     syn.login(silent=True) 
 
-
     today =  datetime.datetime.today()
     if deltaTime=='week':
         t = today - datetime.timedelta(days=today.weekday()-7)
     elif deltaTime=='month':
-        t = datetime.datetime(today.year, today.month+1, 1)
-    print t
+        year, month= divmod(today.month+1, 12)
+        year, month = (year+1, 12) if month == 0 else (year, month)
+        t = datetime.datetime(today.year + year, month, 1)
     md = StringIO.StringIO()
     while t>earliestTime:
         if deltaTime=='week':
@@ -131,12 +131,10 @@ if __name__ == '__main__':
             headerText = '##week of %s\n' %tStart.strftime('%d-%B-%Y')
         else:
             year, month= divmod(t.month-1, 12)
-            if month == 0: 
-                month = 12
-                year = year -1
+            year, month = (year-1, 12) if month == 0 else (year, month)
             tStart = datetime.datetime(t.year + year, month, 1)
             headerText = '##%s\n' %tStart.strftime('%B-%Y')
-        print tStart
+        print '%s -> %s' %(tStart, t)
         df = getChanges(tStart, t, projectId)
         t = tStart
         if len(df)==0:
