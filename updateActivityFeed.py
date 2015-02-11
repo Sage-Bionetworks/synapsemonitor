@@ -40,7 +40,7 @@ def getChanges(start, end, projectId):
 @synapseclient.utils.memoize
 def getParentName(id):
     """Returns the name of an entity """
-    return syn.get(id, downloadFile=False).name
+    return syn.get(id, downloadFile=False).name.replace('_', '\_')
     
 
 
@@ -72,10 +72,10 @@ def printUpdates(md, df):
                                               
                 if row.status=='new':
                     md.write('* [%s](#!Synapse:%s) was added by %s)\n' %
-                             (row['file.name'], id, userLink))
+                             (row['file.name'].replace('_', '\_'), id, userLink))
                 else:
                     md.write('* [%s](#!Synapse:%s) was updated to version %i by %s)\n' %
-                             (row['file.name'], id, 
+                             (row['file.name'].replace('_', '\_'), id, 
                               row['file.versionNumber'], userLink))
                                  
                              
