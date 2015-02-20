@@ -16,7 +16,7 @@ ONEDAY=86400000 #default delta t is 10 days prior
 def findNewFiles(args, id):
     """Performs query query to find changed entities in id. """
 
-    QUERY = "select id, name, versionNumber, modifiedOn, modifiedByPrincipalId, nodeType from entity where benefactorId=='%s' and modifiedOn>%i" 
+    QUERY = "select id, name, versionNumber, modifiedOn, modifiedByPrincipalId, nodeType from entity where projectId=='%s' and modifiedOn>%i" 
     t = calendar.timegm(time.gmtime())*1000
     project = syn.get(id)
     #Determine the last audit time or overide with lastTime
@@ -78,6 +78,8 @@ def build_parser():
             help='Find modifications in the last days')
     parser.add_argument('--updateProject', dest='updateProject',  action='store_true',
             help='If set will modify the annotations by setting lastAuditTimeStamp to the current time on each project.')
+    parser.add_argument('--emailSubject', dest='emailSubject',  default = 'Updated Synapse Files',
+            help='Sets the subject heading of the email sent out (defaults to Updated Synapse Files')
     parser.add_argument('--config', metavar='file', dest='configPath',  type=str,
             help='Synapse config file with user credentials (overides default ~/.synapseConfig)')
     return parser
@@ -103,7 +105,7 @@ print 'Total number of entities = ', len(entityList)
 
 #Prepare and send Message
 syn.sendMessage([args.userId], 
-                'New TCGA files',
+                args.emailSubject, 
                 composeMessage(entityList),
                 contentType = 'text/html')
 
