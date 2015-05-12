@@ -6,10 +6,6 @@ import time
 import argparse
 import multiprocessing.dummy as mp
 
-nodeTypes = {0:'dataset',1: 'layer',2: 'project',3: 'preview',4: 'folder',5: 'analysis',6: 'step',
-             7: 'code',8: 'link',9: 'phenotypedata',10:'genotypedata',11:'expressiondata',12:'robject',
-             13:'summary',14:'genomicdata',15:'page',16:'file',17:'table',18:'community'}
-
 ONEDAY=86400000 #default delta t is 10 days prior
 
 
@@ -34,7 +30,7 @@ def findNewFiles(args, id):
         r['projectName'] = project.name
         r['date'] = synapseclient.utils.from_unix_epoch_time(r['entity.modifiedOn']).strftime("%b/%d/%Y %H:%M")
         r['user'] = syn.getUserProfile(r['entity.modifiedByPrincipalId'])['userName']
-        r['type'] = nodeTypes[r['entity.nodeType']]
+        r['type'] = r['entity.nodeType']
         
     #Set lastAuditTimeStamp
     if args.updateProject:
@@ -100,7 +96,7 @@ args.userId = syn.getUserProfile()['ownerId'] if args.userId is None else args.u
 entityList = p.map(lambda project: findNewFiles(args, project), args.projects)
 entityList = [item for sublist in entityList for item in sublist]
 #Filter out projects and folders
-entityList = [e for e in entityList if e['entity.nodeType'] not in [2, 4]]
+entityList = [e for e in entityList if e['entity.nodeType'] not in ['project', 'folder']]
 print 'Total number of entities = ', len(entityList)
 
 #Prepare and send Message
