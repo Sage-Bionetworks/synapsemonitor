@@ -14,10 +14,10 @@ EPOCHSTART = datetime.datetime(1970,1,1)
 MAX_FOR_SUMMARY=4
 
 updateQuery = ('select id, name, parentId, modifiedByPrincipalId, versionNumber from file '
-               'where benefactorId=="%s" and modifiedOn>%i and modifiedOn<%i '
+               'where projectId=="%s" and modifiedOn>%i and modifiedOn<%i '
                'and versionNumber>1')
 newQuery =    ('select id, name, parentId, modifiedByPrincipalId, versionNumber from file '
-               'where benefactorId=="%s" and modifiedOn>%i and  modifiedOn<%i '
+               'where projectId=="%s" and modifiedOn>%i and  modifiedOn<%i '
                'and versionNumber==1')
 
 def getChanges(start, end, projectId):
