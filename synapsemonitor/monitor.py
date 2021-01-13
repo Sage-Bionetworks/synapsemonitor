@@ -22,13 +22,14 @@ def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
                             parent=project_id,
                             scopes=project_id,
                             includeEntityTypes=[EntityViewType.FILE],
-                            add_default_columns=True)
+                            add_default_columns=True,
+                            addAnnotationColumns=False)
     return syn.store(view)
 
 
 def find_new_files(syn: Synapse, project: Project, view_id: str,
                    epochtime: int = None) -> pd.DataFrame:
-    """Performs query to find changed entities in id
+    """Performs query to find changed entities in id and render columns
 
     Args:
         syn: Synapse connection
@@ -56,8 +57,8 @@ def find_new_files(syn: Synapse, project: Project, view_id: str,
         )
         users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
 
-    resultsdf['date'] = dates
-    resultsdf['users'] = users
+    resultsdf['modifiedOn'] = dates
+    resultsdf['modifiedBy'] = users
 
     return resultsdf
 
