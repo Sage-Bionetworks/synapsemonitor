@@ -1,5 +1,4 @@
 """Monitor Synapse Project"""
-import calendar
 import time
 
 import pandas as pd
