@@ -48,7 +48,7 @@ optional arguments:
 
 ### Create email notifications to changes
 
-Monitors a list of projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the projects.  Includes a list of changed files.
+Monitors a projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
 
 ```
 synapsemonitor monitor -h
