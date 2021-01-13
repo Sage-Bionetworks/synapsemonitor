@@ -76,7 +76,7 @@ def build_parser():
     )
     parser_monitor_team.add_argument(
         '--projectid', required=True,
-        help='Synapse ID of project to store team tracking table'
+        help='Synapse ID of project to store team member tracking table'
     )
     parser_monitor_team.add_argument(
         '--userid',
