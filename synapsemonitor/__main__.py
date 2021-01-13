@@ -15,6 +15,13 @@ def monitor_cli(syn, args):
                             update_project=args.update_project)
 
 
+def monitor_team_cli(syn, args):
+    """Monitor team cli"""
+    monitor.monitor_team(syn, args.team,
+                         projectid=args.projectid,
+                         userid=args.userid)
+
+
 def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
@@ -32,8 +39,7 @@ def build_parser():
         help='For additional help: "synapsemonitor <COMMAND> -h"'
     )
     parser_monitor = subparsers.add_parser(
-        'monitor',
-        help='Monitor a Synapse Project'
+        'monitor', help='Monitor a Synapse Project'
     )
     parser_monitor.add_argument(
         'projectid', metavar='projectid', type=str,
@@ -58,6 +64,25 @@ def build_parser():
         help='If set will modify the annotations by setting '
              'lastAuditTimeStamp to the current time on each project.')
     parser_monitor.set_defaults(func=monitor_cli)
+
+    parser_monitor_team = subparsers.add_parser(
+        'team',
+        help='Checks for new team members. The first time running this'
+             'will assume all members are new.'
+    )
+    parser_monitor_team.add_argument(
+        'team', metavar='id', type=str,
+        help='A team to monitor for changes in team requests'
+    )
+    parser_monitor_team.add_argument(
+        '--projectid', required=True,
+        help='Synapse ID of project to store team tracking table'
+    )
+    parser_monitor_team.add_argument(
+        '--userid',
+        help='User Id of individual to send report, defaults to current user.'
+    )
+    parser_monitor_team.set_defaults(func=monitor_team_cli)
 
     return parser
 
