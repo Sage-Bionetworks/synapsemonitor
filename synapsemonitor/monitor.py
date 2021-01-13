@@ -85,7 +85,7 @@ def get_epoch_start(project: Project, current_time: int,
             days = days[0]
     # Get epochtime value
     else:
-        days = time.time()*1000 - days * ONEDAY
+        days = current_time - days * ONEDAY
     return days
 
 
