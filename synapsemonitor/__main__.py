@@ -39,7 +39,7 @@ def build_parser():
         help='For additional help: "synapsemonitor <COMMAND> -h"'
     )
     parser_monitor = subparsers.add_parser(
-        'monitor', help='Monitor a Synapse Project'
+        'project', help='Monitor a Synapse Project'
     )
     parser_monitor.add_argument(
         'projectid', metavar='projectid', type=str,
