@@ -5,7 +5,7 @@ Provides tools for monitoring and keeping track of changes in Synapse. There are
 
 ## Installation
 ```
-git clone https://github.com/thomasyu888/synapse-monitor.git
+git clone https://github.com/Sage-Bionetworks/synapseMonitor.git
 cd synapse-monitor
 pip install .
 ```
