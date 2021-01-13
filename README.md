@@ -22,28 +22,10 @@ updateActivityFeed.py -i week syn1773109 -w 69074
 Usage:
 
 ```
-usage: updateActivityFeed.py [-h] [--wiki wikiId] [-i interval]
-                             [--earliest date] [--config file]
-                             project
+synapsemonitor update_activity -h
 
-Looks for changes to project in defined time ranges and updates a wiki
+synapsemonitor update_activity syn4990358 --wiki 607852 -e 1-Dec-2020
 
-positional arguments:
-  project               Synapse ID of projects to be monitored.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --wiki wikiId, -w wikiId
-                        Optional sub-wiki id where to store change-log
-                        (defaults to project wiki)
-  -i interval, --interval interval
-                        divide changesets into either "week" or "month" long
-                        intervals (default week)
-  --earliest date, -e date
-                        The start date for which changes will be searched
-                        (defaults to 1-January-2014)
-  --config file         Synapse config file with user credentials (overides
-                        default ~/.synapseConfig)
 ```
 
 ### Create email notifications to changes

@@ -4,13 +4,22 @@ import argparse
 
 import synapseclient
 
-from . import monitor
+from . import monitor, update_activity_feed
 
 
 def monitor_cli(syn, args):
+    """Monitor cli"""
     monitor.main(syn, args.projectid,
                  userid=args.userid, email_subject=args.email_subject,
                  days=args.days, update_project=args.update_project)
+
+
+def update_activity_feed_cli(syn, args):
+    """Update activity cli"""
+    update_activity_feed.main(syn, args.projectid,
+                              delta_time=args.interval,
+                              earliest_time=args.earliest_time,
+                              wiki=args.wiki)
 
 
 def build_parser():
@@ -56,6 +65,33 @@ def build_parser():
         help='If set will modify the annotations by setting '
              'lastAuditTimeStamp to the current time on each project.')
     parser_monitor.set_defaults(func=monitor_cli)
+
+    parser_update = subparsers.add_parser(
+        'update_activity',
+        help='Looks for changes to project in defined time ranges and '
+             'updates a wiki'
+    )
+    parser_update.add_argument(
+        'projectid', help='Synapse ID of project to be monitored.'
+    )
+    parser_update.add_argument(
+        '--wiki', '-w', type=str,
+        help='Optional sub-wiki id where to store change-log '
+             '(defaults to project wiki)'
+    )
+    parser_update.add_argument(
+        '-i', '--interval',
+        choices=['week', 'month'], default='week',
+        help='divide changesets into either "week" or "month" long intervals '
+             '(defaults to week)'
+    )
+    parser_update.add_argument(
+        '--earliest', '-e', metavar='date', dest='earliest_time',
+        type=str, default='1-Jan-2014',
+        help='The start date for which changes will be searched '
+             '(defaults to 1-January-2014)'
+    )
+    parser_update.set_defaults(func=update_activity_feed_cli)
 
     return parser
 
