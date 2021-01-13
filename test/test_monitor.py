@@ -45,7 +45,8 @@ def test_find_new_files():
         'projectName': 'testing'
     })
     with patch.object(syn, "tableQuery", return_value=table_query_results),\
-         patch.object(table_query_results, "asDataFrame", return_value=query_resultsdf),\
+         patch.object(table_query_results, "asDataFrame",
+                      return_value=query_resultsdf),\
          patch.object(syn, "getUserProfile", return_value={"userName": "user"}):
 
         resultdf = monitor.find_new_files(syn, project, "syn44444", 222222)
