@@ -73,3 +73,27 @@ optional arguments:
                         lastAuditTimeStamp to the current time on each
                         project.
 ```
+
+
+## Team Member Tracking
+
+Monitors a team for any new members that are added.  The first time running this function will assume all members are new
+and the list of members are stored in a Synapse Table.  As long as the `projectid` specified is the same as the first run,
+ the next time running this function will only notify the user of new members since the last time this function was ran.
+
+```
+synapsemonitor team -h
+
+usage: synapsemonitor team [-h] --projectid PROJECTID [--userid USERID] id
+
+positional arguments:
+  id                    A team to monitor for changes in team requests
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --projectid PROJECTID
+                        Synapse ID of project to store team member tracking
+                        table
+  --userid USERID       User Id of individual to send report, defaults to
+                        current user.
+```
