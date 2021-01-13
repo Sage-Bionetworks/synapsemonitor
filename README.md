@@ -1,9 +1,8 @@
-###Provides tools for monitoring and keeping track of changes in Synapse. 
+### Synapse Monitoring
 
-There are two main features provided email notifications and activity feeds.
+Provides tools for monitoring and keeping track of changes in Synapse. There are two main features provided email notifications and activity feeds.
 
-
-####Creting activity feeds
+#### Creating activity feeds
 
 The command updateActivityFeed.py can be used to create a weekly or monthly activity feeds.  For example to create an activity log of changes in the progenitor cell biology consortium project (syn1773109 ) and storing the output the wiki with id 69074 you would run:
 
@@ -39,7 +38,7 @@ optional arguments:
                         default ~/.synapseConfig)
 ```
 
-####Create email notifications to changes 
+#### Create email notifications to changes
 
 Monitors a list of projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the projects.  Includes a list of changed files.
 
