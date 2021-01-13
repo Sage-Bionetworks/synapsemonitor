@@ -4,9 +4,9 @@ import time
 
 import pandas as pd
 import synapseclient
-from synapseclient import Synapse, EntityViewSchema, EntityViewType
+from synapseclient import EntityViewSchema, EntityViewType, Project, Synapse
 
-ONEDAY=86400000 #default delta t is 10 days prior
+ONEDAY = 86400000 # milliseconds, default delta t is 10 days prior
 
 
 def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
@@ -26,9 +26,8 @@ def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
     return syn.store(view)
 
 
-def find_new_files(syn: Synapse, project_id: str, view_id: str,
-                   days: int = None,
-                   update_project: bool = False) -> pd.DataFrame:
+def find_new_files(syn: Synapse, project: Project, view_id: str,
+                   epochtime: int = None) -> pd.DataFrame:
     """Performs query to find changed entities in id
 
     Args:
@@ -42,22 +41,12 @@ def find_new_files(syn: Synapse, project_id: str, view_id: str,
     Returns:
         Dataframe with updated entities
     """
-    t = calendar.timegm(time.gmtime())*1000
-    project = syn.get(project_id)
-    #Determine the last audit time or overide with lastTime
-    if days is None:  # No time specified
-        days = project.get('lastAuditTimeStamp', None)
-        if days is None:  # No time specified and no lastAuditTimeStamp set
-            days = t - ONEDAY*1.1
-        else: # days came from annotation strip out from list
-            days = days[0]
-    print(t, days, project_id, (t-days)/float(ONEDAY), 'days')
     query = ("select id, name, currentVersion, modifiedOn, modifiedBy, type "
-             f"from {view_id} where modifiedOn > {days}")
+             f"from {view_id} where modifiedOn > {epochtime}")
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     # Add in project and project name
-    resultsdf['project'] = project_id
+    resultsdf['project'] = project.id
     resultsdf['projectName'] = project.name
     dates = []
     users = []
@@ -72,54 +61,46 @@ def find_new_files(syn: Synapse, project_id: str, view_id: str,
     resultsdf['date'] = dates
     resultsdf['users'] = users
 
-    # #Set lastAuditTimeStamp
-    if update_project:
-        project.lastAuditTimeStamp = t
-        try:
-            project = syn.store(project)
-        except synapseclient.core.exceptions.SynapseHTTPError:
-            pass
     return resultsdf
 
 
-# def compose_message(entityList):
-#     """Composes a message with the contents of entityList """
-
-#     messageHead =('<h4>Time of Audit: %s </h4>'%time.ctime() +
-#                  '<table border=1><tr>'
-#                  '<th>Project</th>'
-#                  '<th>Entity</th>'
-#                  '<th>Ver.</th>'
-#                  '<th>Type</th>'
-#                  '<th>Change Time</th>'
-#                  '<th>Contributor</th></tr>')
-#     lines = [('<tr><td><a href="https://www.synapse.org/#!Synapse:%(projectId)s">%(projectName)s</a></td>'
-#               '<td><a href="https://www.synapse.org/#!Synapse:%(entity.id)s">(%(entity.id)s)</a> %(entity.name)s </td>'
-#               '<td>%(entity.versionNumber)s</td>'
-#               '<td>%(type)s</td>'
-#               '<td>%(date)s</td>'
-#               '<td><a href="https://www.synapse.org/#!Profile:%(entity.modifiedByPrincipalId)s">%(user)s</a></td></tr>')%item for 
-#              item in entityList]
-#     return messageHead + '\n'.join(lines)+'</table></body>'
+def get_epoch_start(project: Project, current_time: int, days: int = None):
+    """
+    Calculate the epoch time of current time minus X number of days.
+    """
+    # Determine the last audit time or overide with lastTime
+    if days is None:  # No time specified
+        days = project.get('lastAuditTimeStamp', None)
+        if days is None:  # No time specified and no lastAuditTimeStamp set
+            days = current_time - ONEDAY*1.1
+        else: # days came from annotation strip out from list
+            days = days[0]
+    # Get default days
+    else:
+        days = time.time()*1000 - days * ONEDAY
+    print(current_time, days, project.id,
+          (current_time - days)/float(ONEDAY), 'days')
+    return days
 
 
 def main(syn: Synapse, projectid: str, userid: str = None,
          email_subject: str = "New Synapse Files",
          days: int = None, update_project: bool = False):
+    """Monitor files"""
+    current_time = time.time()*1000
+
     # Creates file view
     project = syn.get(projectid)
     if not isinstance(project, synapseclient.Project):
         raise ValueError(f"{projectid} must be a Synapse Project")
     view = create_file_view(syn, projectid)
-    # Get default days
-    days = (None if days is None
-            else calendar.timegm(time.gmtime())*1000 - days * ONEDAY)
+
     # get default user
     userid = syn.getUserProfile()['ownerId'] if userid is None else userid
 
+    epochtime = get_epoch_start(project, current_time, days=days)
     # get dataframe of files
-    filesdf = find_new_files(syn, projectid, view.id, days=days,
-                             update_project=update_project)
+    filesdf = find_new_files(syn, projectid, view.id, epochtime=epochtime)
 
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
@@ -128,3 +109,11 @@ def main(syn: Synapse, projectid: str, userid: str = None,
     syn.sendMessage([userid], email_subject,
                     filesdf.to_html(index=False),
                     contentType='text/html')
+
+    # Set lastAuditTimeStamp
+    if update_project:
+        project.lastAuditTimeStamp = current_time
+        try:
+            project = syn.store(project)
+        except synapseclient.core.exceptions.SynapseHTTPError:
+            pass
