@@ -12,20 +12,32 @@ pip install .
 
 ### Creating activity feeds
 
-The command updateActivityFeed.py can be used to create a weekly or monthly activity feeds.  For example to create an activity log of changes in the progenitor cell biology consortium project (syn1773109 ) and storing the output the wiki with id 69074 you would run:
+The command updateActivityFeed.py can be used to create a weekly or monthly activity feeds.  For example to create an activity log of changes in the progenitor cell biology consortium project (syn1773109) and storing the output the wiki with id 69074 you would run:
 
-```
-updateActivityFeed.py -i week syn1773109 -w 69074
-```
-
-
-Usage:
 
 ```
 synapsemonitor update_activity -h
 
-synapsemonitor update_activity syn4990358 --wiki 607852 -e 1-Dec-2020
+usage: synapsemonitor update_activity [-h] [--wiki WIKI] [-i {week,month}]
+                                      [--earliest date]
+                                      projectid
 
+positional arguments:
+  projectid             Synapse ID of project to be monitored.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --wiki WIKI, -w WIKI  Optional sub-wiki id where to store change-log
+                        (defaults to project wiki)
+  -i {week,month}, --interval {week,month}
+                        divide changesets into either "week" or "month" long
+                        intervals (defaults to week)
+  --earliest date, -e date
+                        The start date for which changes will be searched
+                        (defaults to 1-January-2014)
+
+# Example
+synapsemonitor update_activity syn1773109 --wiki 69074 -e 1-Dec-2020
 ```
 
 ### Create email notifications to changes
