@@ -8,9 +8,11 @@ from . import monitor
 
 
 def monitor_cli(syn, args):
-    monitor.main(syn, args.projectid,
-                 userid=args.userid, email_subject=args.email_subject,
-                 days=args.days, update_project=args.update_project)
+    monitor.monitor_project(syn, args.projectid,
+                            userid=args.userid,
+                            email_subject=args.email_subject,
+                            days=args.days,
+                            update_project=args.update_project)
 
 
 def build_parser():

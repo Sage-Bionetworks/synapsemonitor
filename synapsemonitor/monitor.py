@@ -87,9 +87,9 @@ def get_epoch_start(project: Project, current_time: int,
     return days
 
 
-def main(syn: Synapse, projectid: str, userid: str = None,
-         email_subject: str = "New Synapse Files",
-         days: int = None, update_project: bool = False):
+def monitor_project(syn: Synapse, projectid: str, userid: str = None,
+                    email_subject: str = "New Synapse Files",
+                    days: int = None, update_project: bool = False):
     """Monitor files
 
     Args:
