@@ -51,9 +51,9 @@ optional arguments:
 Monitors a projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
 
 ```
-synapsemonitor monitor -h
+synapsemonitor project -h
 
-usage: synapsemonitor monitor [-h] [--userid USERID]
+usage: synapsemonitor project [-h] [--userid USERID]
                               [--email_subject EMAIL_SUBJECT] [--days days]
                               [--update_project]
                               projectid
