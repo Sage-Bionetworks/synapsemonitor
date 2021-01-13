@@ -3,7 +3,7 @@ import time
 
 import pandas as pd
 import synapseclient
-from synapseclient import EntityViewSchema, EntityViewType, Project, Synapse
+from synapseclient import EntityViewSchema, EntityViewType, Project, Schema, Synapse
 
 ONEDAY = 86400000 # milliseconds, default delta t is 10 days prior
 
@@ -128,3 +128,44 @@ def monitor_project(syn: Synapse, projectid: str, userid: str = None,
             project = syn.store(project)
         except synapseclient.core.exceptions.SynapseHTTPError:
             pass
+
+
+def create_team_tracking(syn, parent):
+    """Set up the table that will track team members"""
+    cols = [synapseclient.table.Column(name='userid', columnType='USERID'),
+            synapseclient.table.Column(name='teamid', columnType='USERID')]
+    schema = Schema(name='(monitor) team members', columns=cols, parent=parent)
+    return syn.store(schema)
+
+
+def monitor_team(syn, teamid, projectid, userid=None):
+    """Monitor team members"""
+    project = syn.get(projectid)
+    if not isinstance(project, synapseclient.Project):
+        raise ValueError(f"{projectid} must be a Synapse Project")
+
+    # Create team member tracking table
+    team_tracker = create_team_tracking(syn, projectid)
+    existing_members = syn.tableQuery(f"select * from {team_tracker.id}")
+    existing_membersdf = existing_members.asDataFrame()
+
+    # Get userid
+    userid = syn.getUserProfile()['ownerId'] if userid is None else userid
+    # TODO: check team requests
+    # team_requests = syn.restGET('/team/%s/openRequest' % team)['results']
+    # Get current team members
+    team_member = syn.getTeamMembers(teamid)
+    new_members = {'userid': [], 'teamid': []}
+    for member in team_member:
+        userid = member['member']['ownerId']
+        # Get new members only
+        if userid not in existing_membersdf['userid']:
+            new_members['userid'].append(userid)
+            new_members['teamid'].append(teamid)
+    mew_membersdf = pd.DataFrame(new_members)
+
+    syn.store(synapseclient.Table(team_tracker.id, mew_membersdf))
+
+    syn.sendMessage([userid], 'New Team Members',
+                    mew_membersdf.to_html(index=False),
+                    contentType='text/html')
