@@ -1,8 +1,16 @@
-### Synapse Monitoring
+## Synapse Monitoring
 
-Provides tools for monitoring and keeping track of changes in Synapse. There are two main features provided email notifications and activity feeds.
+Provides tools for monitoring and keeping track of changes in Synapse. There are two main features provided email notifications and activity feeds. 
 
-#### Creating activity feeds
+
+## Installation
+```
+git clone https://github.com/thomasyu888/synapse-monitor.git
+cd synapse-monitor
+pip install .
+```
+
+### Creating activity feeds
 
 The command updateActivityFeed.py can be used to create a weekly or monthly activity feeds.  For example to create an activity log of changes in the progenitor cell biology consortium project (syn1773109 ) and storing the output the wiki with id 69074 you would run:
 
@@ -38,27 +46,30 @@ optional arguments:
                         default ~/.synapseConfig)
 ```
 
-#### Create email notifications to changes
+### Create email notifications to changes
 
 Monitors a list of projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the projects.  Includes a list of changed files.
 
 ```
-usage: monitor.py [-h] [--userId USERID]
-                  [--projects [projects [projects ...]]] [--days days]
-                  [--updateProject] [--config file]
+synapsemonitor monitor -h
 
-Checks for new/modified entities in a project.
+usage: synapsemonitor monitor [-h] [--userid USERID]
+                              [--email_subject EMAIL_SUBJECT] [--days days]
+                              [--update_project]
+                              projectid
+
+positional arguments:
+  projectid             Synapse ID of project to be monitored.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --userId USERID       User Id of individual to send report, defaults to
+  --userid USERID       User Id of individual to send report, defaults to
                         current user.
-  --projects [projects [projects ...]], -p [projects [projects ...]]
-                        Synapse IDs of projects to be monitored.
+  --email_subject EMAIL_SUBJECT
+                        Sets the subject heading of the email sent out
+                        (defaults to New Synapse Files)
   --days days, -d days  Find modifications in the last days
-  --updateProject       If set will modify the annotations by setting
+  --update_project      If set will modify the annotations by setting
                         lastAuditTimeStamp to the current time on each
                         project.
-  --config file         Synapse config file with user credentials (overides
-                        default ~/.synapseConfig)
 ```
