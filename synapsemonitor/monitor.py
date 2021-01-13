@@ -111,7 +111,7 @@ def main(syn: Synapse, projectid: str, userid: str = None,
 
     epochtime = get_epoch_start(project, current_time, days=days)
     # get dataframe of files
-    filesdf = find_new_files(syn, projectid, view.id, epochtime=epochtime)
+    filesdf = find_new_files(syn, project, view.id, epochtime=epochtime)
 
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
