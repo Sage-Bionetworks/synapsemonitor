@@ -34,7 +34,7 @@ def find_new_files(syn: Synapse, project: Project, view_id: str,
         syn: Synapse connection
         project_id: Synapse Project Id
         view_id: Synapse View Id
-        days: Find modifications in the last days
+        epochtime: Epoch time in milliseconds
         update_project: If set will modify the annotations by setting
                         lastAuditTimeStamp to the current time on project.
 
@@ -64,9 +64,17 @@ def find_new_files(syn: Synapse, project: Project, view_id: str,
     return resultsdf
 
 
-def get_epoch_start(project: Project, current_time: int, days: int = None):
-    """
-    Calculate the epoch time of current time minus X number of days.
+def get_epoch_start(project: Project, current_time: int,
+                    days: int = None) -> int:
+    """Calculate the epoch time of current time minus X number of days.
+
+    Args:
+        project: Synapse Project
+        current_time: Current time in epoch milliseconds
+        days: Number of days to look for updates
+
+    Returns:
+        Epoch time of current time minus X number of days
     """
     # Determine the last audit time or overide with lastTime
     if days is None:  # No time specified
@@ -75,11 +83,9 @@ def get_epoch_start(project: Project, current_time: int, days: int = None):
             days = current_time - ONEDAY*1.1
         else: # days came from annotation strip out from list
             days = days[0]
-    # Get default days
+    # Get epochtime value
     else:
         days = time.time()*1000 - days * ONEDAY
-    print(current_time, days, project.id,
-          (current_time - days)/float(ONEDAY), 'days')
     return days
 
 
@@ -87,12 +93,14 @@ def main(syn: Synapse, projectid: str, userid: str = None,
          email_subject: str = "New Synapse Files",
          days: int = None, update_project: bool = False):
     """Monitor files"""
+    # Get current audit time
     current_time = time.time()*1000
 
     # Creates file view
     project = syn.get(projectid)
     if not isinstance(project, synapseclient.Project):
         raise ValueError(f"{projectid} must be a Synapse Project")
+    # Create file view
     view = create_file_view(syn, projectid)
 
     # get default user
