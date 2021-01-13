@@ -35,8 +35,6 @@ def find_new_files(syn: Synapse, project: Project, view_id: str,
         project_id: Synapse Project Id
         view_id: Synapse View Id
         epochtime: Epoch time in milliseconds
-        update_project: If set will modify the annotations by setting
-                        lastAuditTimeStamp to the current time on project.
 
     Returns:
         Dataframe with updated entities
@@ -92,7 +90,12 @@ def get_epoch_start(project: Project, current_time: int,
 def main(syn: Synapse, projectid: str, userid: str = None,
          email_subject: str = "New Synapse Files",
          days: int = None, update_project: bool = False):
-    """Monitor files"""
+    """Monitor files
+
+    Args:
+        update_project: If set will modify the annotations by setting
+                        lastAuditTimeStamp to the current time on project.
+    """
     # Get current audit time
     current_time = time.time()*1000
 
