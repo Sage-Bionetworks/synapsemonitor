@@ -51,25 +51,27 @@ optional arguments:
 Monitors a projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
 
 ```
-synapsemonitor project -h
-
-usage: synapsemonitor project [-h] [--userid USERID]
-                              [--email_subject EMAIL_SUBJECT] [--days days]
-                              [--update_project]
-                              projectid
+synapsemonitor project_or_view -h
+usage: synapsemonitor project_or_view [-h] [--userid USERID]
+                                      [--email_subject EMAIL_SUBJECT]
+                                      [--days days | --use_last_audit_time]
+                                      id
 
 positional arguments:
-  projectid             Synapse ID of project to be monitored.
+  id                    Synapse ID of project or fileview to be monitored.
 
 optional arguments:
   -h, --help            show this help message and exit
   --userid USERID       User Id of individual to send report, defaults to
                         current user.
+  --output OUTPUT       Output modified entities into this csv file.
   --email_subject EMAIL_SUBJECT
                         Sets the subject heading of the email sent out
                         (defaults to New Synapse Files)
   --days days, -d days  Find modifications in the last days
-  --update_project      If set will modify the annotations by setting
+  --use_last_audit_time
+                        If set will modify the annotations by setting
                         lastAuditTimeStamp to the current time on each
                         project.
+
 ```

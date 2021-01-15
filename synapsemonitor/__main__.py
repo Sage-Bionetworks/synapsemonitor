@@ -8,11 +8,16 @@ from . import monitor
 
 
 def monitor_cli(syn, args):
-    monitor.monitor_project(syn, args.projectid,
-                            userid=args.userid,
-                            email_subject=args.email_subject,
-                            days=args.days,
-                            update_project=args.update_project)
+    filesdf = monitor.monitoring(
+        syn, args.synid, userid=args.userid,
+        email_subject=args.email_subject,
+        days=args.days,
+        use_last_audit_time=args.use_last_audit_time
+    )
+    if args.output:
+        filesdf.to_csv(args.output, index=False)
+    else:
+        print(filesdf.to_csv(index=False))
 
 
 def build_parser():
@@ -32,16 +37,21 @@ def build_parser():
         help='For additional help: "synapsemonitor <COMMAND> -h"'
     )
     parser_monitor = subparsers.add_parser(
-        'project',
-        help='Monitor a Synapse Project'
+        'project_or_view',
+        help='Monitor a Synapse Project or Fileview.'
     )
+
     parser_monitor.add_argument(
-        'projectid', metavar='projectid', type=str,
-        help='Synapse ID of project to be monitored.'
+        'synid', metavar='id', type=str,
+        help='Synapse ID of project or fileview to be monitored.'
     )
     parser_monitor.add_argument(
         '--userid',
         help='User Id of individual to send report, defaults to current user.'
+    )
+    parser_monitor.add_argument(
+        '--output',
+        help='Output modified entities into this csv file.'
     )
     parser_monitor.add_argument(
         '--email_subject',
@@ -49,12 +59,13 @@ def build_parser():
         help='Sets the subject heading of the email sent out '
              '(defaults to New Synapse Files)'
     )
-    parser_monitor.add_argument(
+    group = parser_monitor.add_mutually_exclusive_group()
+    group.add_argument(
         '--days', '-d', metavar='days', type=float, default=None,
         help='Find modifications in the last days'
     )
-    parser_monitor.add_argument(
-        '--update_project', action='store_true',
+    group.add_argument(
+        '--use_last_audit_time', action='store_true',
         help='If set will modify the annotations by setting '
              'lastAuditTimeStamp to the current time on each project.')
     parser_monitor.set_defaults(func=monitor_cli)
