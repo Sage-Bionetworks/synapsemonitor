@@ -59,6 +59,34 @@ def find_new_files(syn: Synapse, view_id: str,
     return resultsdf
 
 
+def _get_audit_time(current_time, days, view, use_last_audit_time=False):
+    """Get the epoch time in milliseconds of when to start auditing and
+    store lastAuditTimeStamp annotation on view.
+
+    Args:
+        syn: Synapse connection
+        view: Synapse EntityViewSchema
+        days: Number of days to look for updates.
+        use_last_audit_time: Use the last audit time. This value is stored
+                             as an annotation on the file view.
+                             Default to False.
+
+    Returns:
+        Epoch time of current time minus X number of days
+    """
+    # By default the audit time starts from the day before
+    epochtime = current_time - ONEDAY
+    # If days is specified, calculate epochtime
+    if days is not None:
+        epochtime = current_time - days * ONEDAY
+    # If use_last_audit_time, check lastAuditTimeStamp
+    if use_last_audit_time:
+        last_audit_time = view.get("lastAuditTimeStamp")
+        if last_audit_time is not None:
+            epochtime = last_audit_time[0]
+    return epochtime
+
+
 def get_audit_time(syn, view, days, use_last_audit_time=False):
     """Get the epoch time in milliseconds of when to start auditing and
     store lastAuditTimeStamp annotation on view.
@@ -75,18 +103,19 @@ def get_audit_time(syn, view, days, use_last_audit_time=False):
         Epoch time of current time minus X number of days
     """
     current_time = time.time()*1000
-    # By default the audit time starts from the day before
-    epochtime = current_time - ONEDAY
-    # If days is specified, calculate epochtime
-    if days is not None:
-        epochtime = current_time - days * ONEDAY
-    # If use_last_audit_time, check lastAuditTimeStamp
-    if use_last_audit_time:
-        last_audit_time = view.get("lastAuditTimeStamp")
-        if last_audit_time is not None:
-            epochtime = last_audit_time
-    # Save lastAuditTimeStamp
-    view.lastAuditTimeStamp = current_time
+    epochtime = _get_audit_time(current_time, days, view, use_last_audit_time)
+    # # By default the audit time starts from the day before
+    # epochtime = current_time - ONEDAY
+    # # If days is specified, calculate epochtime
+    # if days is not None:
+    #     epochtime = current_time - days * ONEDAY
+    # # If use_last_audit_time, check lastAuditTimeStamp
+    # if use_last_audit_time:
+    #     last_audit_time = view.get("lastAuditTimeStamp")
+    #     if last_audit_time is not None:
+    #         epochtime = last_audit_time
+    # # Save lastAuditTimeStamp
+    # view.lastAuditTimeStamp = current_time
     try:
         syn.store(view)
     except synapseclient.core.exceptions.SynapseHTTPError:

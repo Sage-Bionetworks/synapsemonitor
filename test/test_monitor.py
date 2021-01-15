@@ -2,7 +2,7 @@
 from unittest.mock import Mock, patch
 
 import pandas as pd
-from synapseclient import Project
+from synapseclient import EntityViewSchema, Project
 
 from synapsemonitor import monitor
 
@@ -10,24 +10,29 @@ from synapsemonitor import monitor
 class TestGetEpochStart:
     """Test get_epoch_start"""
     def setup_method(self):
-        self.project = Project(lastAuditTimeStamp=[3])
+        self.view = EntityViewSchema(lastAuditTimeStamp=[3], parentId="syn2222")
         self.syn = Mock()
 
     def test_specify_days(self):
         """Testing days specified"""
-        epochtime = monitor.get_audit_time(self.syn, self.project, 864000000, days=9)
+        epochtime = monitor._get_audit_time(864000000, 9, self.view, use_last_audit_time=False)
         assert epochtime == 86400000
 
     def test_none_days(self):
-        """Test no days"""
-        epochtime = monitor.get_audit_time(self.syn, self.project, 864000000)
+        """Test no days and not use last audit time"""
+        epochtime = monitor._get_audit_time(864000000, None, self.view, use_last_audit_time=False)
+        assert epochtime == 777600000
+
+    def test_none_days_audit(self):
+        """Test no days and use last audit time"""
+        epochtime = monitor._get_audit_time(864000000, None, self.view, use_last_audit_time=True)
         assert epochtime == 3
 
     def test_none_days_no_last_audit(self):
-        """Testing no days and no last audit"""
-        self.project.lastAuditTimeStamp = None
-        epochtime = monitor.get_audit_time(self.syn, self.project, 864000000)
-        assert epochtime == 768960000
+        """Testing no days and use last audit, but value doesn't exist"""
+        self.view.lastAuditTimeStamp = None
+        epochtime = monitor._get_audit_time(864000000, None, self.view, use_last_audit_time=True)
+        assert epochtime == 777600000
 
 
 def test_find_new_files():
