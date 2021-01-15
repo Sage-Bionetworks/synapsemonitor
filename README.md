@@ -48,7 +48,7 @@ optional arguments:
 
 ### Create email notifications to changes
 
-Monitors a projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
+Monitors a project or entities provided in the scope of a fileview for changes and sends an email through the Synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
 
 ```
 synapsemonitor project_or_view -h
@@ -70,8 +70,8 @@ optional arguments:
                         (defaults to New Synapse Files)
   --days days, -d days  Find modifications in the last days
   --use_last_audit_time
-                        If set will modify the annotations by setting
-                        lastAuditTimeStamp to the current time on each
-                        project.
+                        Use the last audit time. This value is stored
+                        as an annotation on the file view.
+                        (Default to False)
 
 ```

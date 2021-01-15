@@ -66,8 +66,10 @@ def build_parser():
     )
     group.add_argument(
         '--use_last_audit_time', action='store_true',
-        help='If set will modify the annotations by setting '
-             'lastAuditTimeStamp to the current time on each project.')
+        help='Use the last audit time. This value is stored'
+             'as an annotation on the file view.'
+             '(Default to False)'
+    )
     parser_monitor.set_defaults(func=monitor_cli)
 
     return parser
