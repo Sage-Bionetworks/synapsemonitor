@@ -60,8 +60,7 @@ def find_new_files(syn: Synapse, view_id: str,
 
 
 def _get_audit_time(current_time, days, view, use_last_audit_time=False):
-    """Get the epoch time in milliseconds of when to start auditing and
-    store lastAuditTimeStamp annotation on view.
+    """Get the epoch time in milliseconds of when to start auditing.
 
     Args:
         syn: Synapse connection
@@ -104,18 +103,6 @@ def get_audit_time(syn, view, days, use_last_audit_time=False):
     """
     current_time = time.time()*1000
     epochtime = _get_audit_time(current_time, days, view, use_last_audit_time)
-    # # By default the audit time starts from the day before
-    # epochtime = current_time - ONEDAY
-    # # If days is specified, calculate epochtime
-    # if days is not None:
-    #     epochtime = current_time - days * ONEDAY
-    # # If use_last_audit_time, check lastAuditTimeStamp
-    # if use_last_audit_time:
-    #     last_audit_time = view.get("lastAuditTimeStamp")
-    #     if last_audit_time is not None:
-    #         epochtime = last_audit_time
-    # # Save lastAuditTimeStamp
-    # view.lastAuditTimeStamp = current_time
     try:
         syn.store(view)
     except synapseclient.core.exceptions.SynapseHTTPError:
