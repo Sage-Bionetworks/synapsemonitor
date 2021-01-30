@@ -76,7 +76,7 @@ def find_modified_entities(syn: Synapse, view_id: str,
     return _render_fileview(syn, viewdf=resultsdf)
 
 
-def _force_update_view(syn, view_id):
+def _force_update_view(syn: Synapse, view_id: str):
     """File views are not indexed unless someone queries them by
     going to the file view on Synapse or querying them via a function
     call.  This will force the update of the file view to ensure the most
