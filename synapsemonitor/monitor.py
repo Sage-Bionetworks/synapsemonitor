@@ -111,7 +111,7 @@ def get_audit_time(syn, view, days, use_last_audit_time=False):
     return epochtime
 
 
-def monitoring(syn: Synapse, synid: str, userid: str = None,
+def monitoring(syn: Synapse, synid: str, userids: list = None,
                email_subject: str = "New Synapse Files",
                days: int = None, use_last_audit_time: bool = False):
     """Monitor a Synapse Project or Fileview.
@@ -119,8 +119,8 @@ def monitoring(syn: Synapse, synid: str, userid: str = None,
     Args:
         syn: Synapse connection
         synid: Synapse ID of project or fileview to be monitored.
-        userid: User Id of individual to send report
-                (Defaults to current user.)
+        userid: User Ids of individual to send report.  If empty,
+                defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (Defaults to 'New Synapse Files')
         days: Find modifications in the last days
@@ -130,26 +130,29 @@ def monitoring(syn: Synapse, synid: str, userid: str = None,
     """
 
     entity = syn.get(synid)
-    if isinstance(entity, synapseclient.Project):
-        # Creates file view
-        view = create_file_view(syn, synid)
-    elif isinstance(entity, synapseclient.EntityViewSchema):
-        view = entity
-    else:
-        raise ValueError(f"{synid} must be a Synapse Project or File View")
+    # Code review decision to only allow file views so that
+    # Users can decide where they want to store their own fileview
+    # and can choose the scope of the fileview. (Scope meaning)
+    # the entities they want to have tracked.
+    if not isinstance(entity, synapseclient.EntityViewSchema):
+        raise ValueError(f"{synid} must be a Synapse File View")
 
     # Get epoch time for audit start time
-    epochtime = get_audit_time(syn, view, days,
+    epochtime = get_audit_time(syn, entity, days,
                                use_last_audit_time=use_last_audit_time)
     # get dataframe of files
-    filesdf = find_new_files(syn, view.id, epochtime=epochtime)
+    filesdf = find_new_files(syn, entity.id, epochtime=epochtime)
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
 
-    # get default user
-    userid = syn.getUserProfile()['ownerId'] if userid is None else userid
+    # get users
+    if userids is None:
+        users = [syn.getUserProfile()['ownerId']]
+    else:
+        users = [syn.getUserProfile(user)['ownerId'] for user in userids]
+
     # Prepare and send Message
-    syn.sendMessage([userid], email_subject,
+    syn.sendMessage(users, email_subject,
                     filesdf.to_html(index=False),
                     contentType='text/html')
     return filesdf
