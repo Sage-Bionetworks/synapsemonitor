@@ -60,12 +60,12 @@ def build_parser():
     parser_monitor.add_argument(
         '--email_subject',
         default='New Synapse Files',
-        help='Sets the subject heading of the email sent out.'
+        help='Sets the subject heading of the email sent out. '
              '(default: %(default)s)'
     )
     parser_monitor.add_argument(
         '--days', '-d', metavar='days', type=int, default=1,
-        help='Find modifications to entities in the last N days.'
+        help='Find modifications to entities in the last N days. '
              '(default: %(default)s)'
     )
     parser_monitor.set_defaults(func=monitor_cli)
