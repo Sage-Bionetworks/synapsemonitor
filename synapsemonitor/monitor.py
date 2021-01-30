@@ -38,8 +38,8 @@ def find_new_files(syn: Synapse, view_id: str,
     Returns:
         Dataframe with updated entities
     """
-    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, createdOn"
-             "projectId, type "
+    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
+             "createdOn, projectId, type "
              f"from {view_id} where modifiedOn > {epochtime}")
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
