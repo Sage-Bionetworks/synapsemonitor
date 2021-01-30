@@ -1,21 +1,31 @@
 """Monitor Synapse Project"""
+import typing
+
 import pandas as pd
 import synapseclient
 from synapseclient import EntityViewSchema, EntityViewType, Synapse
 
 
-def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
-    """Creates file view for project
+def create_file_view(syn: Synapse, name: str, project_id: str,
+                     scope_ids: typing.List[str]) -> EntityViewSchema:
+    """Creates a file view that will list all the File entities under
+    the specified scopes (Synapse Folders or Projects). This will
+    allow you to query for the files contained in your specified scopes.
+    This will NOT track the other entities currently: PROJECT, TABLE,
+    FOLDER, VIEW, DOCKER.
 
     Args:
         syn: Synapse connection
-        project_id: Synapse project id
+        name: File view name
+        project_id: Synapse project id to store your file view
+        scope_ids: List of Folder or Project synapse Ids
 
     Returns:
-        Synapse file view"""
-    view = EntityViewSchema(name="(monitor) project files",
+        Synapse file view
+    """
+    view = EntityViewSchema(name=name,
                             parent=project_id,
-                            scopes=project_id,
+                            scopes=scope_ids,
                             includeEntityTypes=[EntityViewType.FILE],
                             add_default_columns=True,
                             addAnnotationColumns=False)
