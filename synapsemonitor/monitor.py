@@ -102,7 +102,7 @@ def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
     if not isinstance(entity, synapseclient.EntityViewSchema):
         raise ValueError(f"{view_id} must be a Synapse File View")
     # Update the view
-    _force_update_view(syn, view_id)
+    # _force_update_view(syn, view_id)
     # get dataframe of files
     filesdf = find_modified_entities(syn, entity.id, days=days)
     # Filter out projects and folders
