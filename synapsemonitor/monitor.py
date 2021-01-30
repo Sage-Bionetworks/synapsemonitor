@@ -22,6 +22,39 @@ def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
     return syn.store(view)
 
 
+def _render_fileview(syn: Synapse, viewdf: pd.DataFrame) -> pd.DataFrame:
+    """Renders file view values such as changing modifiedOn from
+    Epoch time to string or userids to usernames
+
+    Args:
+        viewdf: File view dataframe
+
+    Returns:
+        Rendered File view dataframe
+
+    """
+    modified_on_dates = []
+    created_on_dates = []
+    users = []
+    for _, row in viewdf.iterrows():
+        modified_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['modifiedOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
+        created_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['createdOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
+        users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
+
+    viewdf['modifiedOn'] = modified_on_dates
+    viewdf['createdOn'] = created_on_dates
+    viewdf['modifiedBy'] = users
+    return viewdf
+
+
 def find_modified_entities(syn: Synapse, view_id: str,
                            days: int = 1) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
@@ -40,27 +73,7 @@ def find_modified_entities(syn: Synapse, view_id: str,
              f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
-    modified_on_dates = []
-    created_on_dates = []
-    users = []
-    for _, row in resultsdf.iterrows():
-        modified_on_dates.append(
-            synapseclient.core.utils.from_unix_epoch_time(
-                row['modifiedOn']
-            ).strftime("%b/%d/%Y %H:%M")
-        )
-        created_on_dates.append(
-            synapseclient.core.utils.from_unix_epoch_time(
-                row['createdOn']
-            ).strftime("%b/%d/%Y %H:%M")
-        )
-        users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
-
-    resultsdf['modifiedOn'] = modified_on_dates
-    resultsdf['createdOn'] = created_on_dates
-    resultsdf['modifiedBy'] = users
-
-    return resultsdf
+    return _render_fileview(syn, viewdf=resultsdf)
 
 
 def _force_update_view(syn, view_id):
