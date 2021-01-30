@@ -63,14 +63,27 @@ def find_modified_entities(syn: Synapse, view_id: str,
     return resultsdf
 
 
-def monitoring(syn: Synapse, synid: str, userids: list = None,
+def _force_update_view(syn, view_id):
+    """File views are not indexed unless someone queries them by
+    going to the file view on Synapse or querying them via a function
+    call.  This will force the update of the file view to ensure the most
+    up to date fileview is used.
+
+    Args:
+        syn: Synapse connection
+        view_id: Synapse ID of fileview to be monitored.
+    """
+    syn.tableQuery(f"select * from {view_id} limit 1")
+
+
+def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
                email_subject: str = "New Synapse Files",
                days: int = 1) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
     Args:
         syn: Synapse connection
-        synid: Synapse ID of project or fileview to be monitored.
+        synid: Synapse ID of fileview to be monitored.
         userid: User Ids of individual to send report.  If empty,
                 defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
@@ -81,13 +94,13 @@ def monitoring(syn: Synapse, synid: str, userids: list = None,
         Dataframe with files modified within last N days
     """
 
-    entity = syn.get(synid)
+    entity = syn.get(view_id)
     # Code review decision to only allow file views so that
     # Users can decide where they want to store their own fileview
     # and can choose the scope of the fileview. (Scope meaning)
     # the entities they want to have tracked.
     if not isinstance(entity, synapseclient.EntityViewSchema):
-        raise ValueError(f"{synid} must be a Synapse File View")
+        raise ValueError(f"{view_id} must be a Synapse File View")
 
     # get dataframe of files
     filesdf = find_modified_entities(syn, entity.id, days=days)
@@ -95,10 +108,10 @@ def monitoring(syn: Synapse, synid: str, userids: list = None,
     print(f'Total number of entities = {len(filesdf.index)}')
 
     # get users
-    if userids is None:
+    if user_ids is None:
         users = [syn.getUserProfile()['ownerId']]
     else:
-        users = [syn.getUserProfile(user)['ownerId'] for user in userids]
+        users = [syn.getUserProfile(user)['ownerId'] for user in user_ids]
 
     # Prepare and send Message
     syn.sendMessage(users, email_subject,

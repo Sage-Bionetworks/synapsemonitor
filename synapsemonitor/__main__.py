@@ -10,7 +10,7 @@ from . import monitor
 def monitor_cli(syn, args):
     """Monitor cli"""
     filesdf = monitor.monitoring(
-        syn, args.viewid, userids=args.userids,
+        syn, args.view_id, user_ids=args.user_ids,
         email_subject=args.email_subject,
         days=args.days
     )
@@ -45,11 +45,11 @@ def build_parser():
         help='Monitor entities tracked in a Synapse Fileview.'
     )
     parser_monitor.add_argument(
-        'viewid', metavar='id', type=str,
+        'view_id', metavar='id', type=str,
         help='Synapse ID of fileview to be monitored.'
     )
     parser_monitor.add_argument(
-        '--userids', nargs='+',
+        '--user_ids', nargs='+',
         help='User Id of individuals to send report. If not specified will '
              'defaults to logged in Synapse user.'
     )
