@@ -89,7 +89,25 @@ def _force_update_view(syn: Synapse, view_id: str):
     syn.tableQuery(f"select * from {view_id} limit 1")
 
 
-def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
+def _get_user_ids(syn: Synapse, users: list = None):
+    """Get users ids from list of user ids or usernames.  This will also
+    confirm that the users specified exist in the system
+
+    Args:
+        syn: Synapse connection
+        users: List of Synapse user Ids or usernames
+
+    Returns:
+        List of Synapse user Ids.
+    """
+    if users is None:
+        user_ids = [syn.getUserProfile()['ownerId']]
+    else:
+        user_ids = [syn.getUserProfile(user)['ownerId'] for user in users]
+    return user_ids
+
+
+def monitoring(syn: Synapse, view_id: str, users: list = None,
                email_subject: str = "New Synapse Files",
                days: int = 1) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
@@ -97,8 +115,8 @@ def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
     Args:
         syn: Synapse connection
         synid: Synapse ID of fileview to be monitored.
-        userid: User Ids of individual to send report.  If empty,
-                defaults to current logged in Synapse user.
+        users: User Id or usernames of individual to send report.
+               If empty, defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (default: 'New Synapse Files')
         days: Find modifications in the last N days (default: 1)
@@ -121,16 +139,13 @@ def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
 
-    # get users
-    if user_ids is None:
-        users = [syn.getUserProfile()['ownerId']]
-    else:
-        users = [syn.getUserProfile(user)['ownerId'] for user in user_ids]
+    # get user ids
+    user_ids = _get_user_ids(syn, users)
 
     # TODO: Add function to beautify email message
 
     # Prepare and send Message
-    syn.sendMessage(users, email_subject,
+    syn.sendMessage(user_ids, email_subject,
                     filesdf.to_html(index=False),
                     contentType='text/html')
     return filesdf
