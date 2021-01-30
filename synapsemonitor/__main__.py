@@ -21,7 +21,7 @@ def monitor_cli(syn, args):
 
 
 def create_file_view_cli(syn, args):
-    """Track entities cli"""
+    """Create file view cli"""
     fileview = monitor.create_file_view(
         syn, name=args.name, project_id=args.project_id,
         scope_ids=args.scope_ids
