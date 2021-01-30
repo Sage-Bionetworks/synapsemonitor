@@ -1,11 +1,7 @@
 """Monitor Synapse Project"""
-import time
-
 import pandas as pd
 import synapseclient
 from synapseclient import EntityViewSchema, EntityViewType, Synapse
-
-ONEDAY = 86400000 # milliseconds, default delta t is 10 days prior
 
 
 def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
@@ -27,7 +23,7 @@ def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
 
 
 def find_new_files(syn: Synapse, view_id: str,
-                   epochtime: int = None) -> pd.DataFrame:
+                   days: int = 1) -> pd.DataFrame:
     """Performs query to find changed entities in id and render columns
 
     Args:
@@ -39,9 +35,8 @@ def find_new_files(syn: Synapse, view_id: str,
         Dataframe with updated entities
     """
     query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
-             "createdOn, projectId, type "
-             f"from {view_id} where modifiedOn > {epochtime}")
-    #unix_timestamp(NOW() - INTERVAL 30 DAY)*1000
+             f"createdOn, projectId, type from {view_id} where "
+             f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     modified_on_dates = []
@@ -67,63 +62,10 @@ def find_new_files(syn: Synapse, view_id: str,
     return resultsdf
 
 
-def _get_audit_time(current_time, days, view, use_last_audit_time=False):
-    """Get the epoch time in milliseconds of when to start auditing.
-
-    Args:
-        syn: Synapse connection
-        view: Synapse EntityViewSchema
-        days: Number of days to look for updates.
-        use_last_audit_time: Use the last audit time. This value is stored
-                             as an annotation on the file view.
-                             Default to False.
-
-    Returns:
-        Epoch time of current time minus X number of days
-    """
-    # By default the audit time starts from the day before
-    epochtime = current_time - ONEDAY
-    # If days is specified, calculate epochtime
-    if days is not None:
-        epochtime = current_time - days * ONEDAY
-    # If use_last_audit_time, check lastAuditTimeStamp
-    if use_last_audit_time:
-        last_audit_time = view.get("lastAuditTimeStamp")
-        if last_audit_time is not None:
-            epochtime = last_audit_time[0]
-    return epochtime
-
-
-def get_audit_time(syn, view, days, use_last_audit_time=False):
-    """Get the epoch time in milliseconds of when to start auditing and
-    store lastAuditTimeStamp annotation on view.
-
-    Args:
-        syn: Synapse connection
-        view: Synapse EntityViewSchema
-        days: Number of days to look for updates.
-        use_last_audit_time: Use the last audit time. This value is stored
-                             as an annotation on the file view.
-                             Default to False.
-
-    Returns:
-        Epoch time of current time minus X number of days
-    """
-    current_time = time.time()*1000
-    epochtime = _get_audit_time(current_time, days, view, use_last_audit_time)
-    try:
-        view.lastAuditTimeStamp = current_time
-        syn.store(view)
-    except synapseclient.core.exceptions.SynapseHTTPError:
-        pass
-
-    return epochtime
-
-
 def monitoring(syn: Synapse, synid: str, userids: list = None,
                email_subject: str = "New Synapse Files",
-               days: int = None, use_last_audit_time: bool = False):
-    """Monitor a Synapse Project or Fileview.
+               days: int = 1) -> pd.DataFrame:
+    """Monitor the modifications of an entity scoped by a Fileview.
 
     Args:
         syn: Synapse connection
@@ -131,11 +73,11 @@ def monitoring(syn: Synapse, synid: str, userids: list = None,
         userid: User Ids of individual to send report.  If empty,
                 defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
-                       (Defaults to 'New Synapse Files')
-        days: Find modifications in the last N days
-        use_last_audit_time: Use the last audit time. This value is stored
-                             as an annotation on the file view.
-                             (Default to False)
+                       (default: 'New Synapse Files')
+        days: Find modifications in the last N days (default: 1)
+
+    Returns:
+        Dataframe with files modified within last N days
     """
 
     entity = syn.get(synid)
@@ -146,11 +88,8 @@ def monitoring(syn: Synapse, synid: str, userids: list = None,
     if not isinstance(entity, synapseclient.EntityViewSchema):
         raise ValueError(f"{synid} must be a Synapse File View")
 
-    # Get epoch time for audit start time
-    epochtime = get_audit_time(syn, entity, days,
-                               use_last_audit_time=use_last_audit_time)
     # get dataframe of files
-    filesdf = find_new_files(syn, entity.id, epochtime=epochtime)
+    filesdf = find_new_files(syn, entity.id, days=days)
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
 

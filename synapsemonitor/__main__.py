@@ -12,8 +12,7 @@ def monitor_cli(syn, args):
     filesdf = monitor.monitoring(
         syn, args.viewid, userids=args.userids,
         email_subject=args.email_subject,
-        days=args.days,
-        use_last_audit_time=args.use_last_audit_time
+        days=args.days
     )
     if args.output:
         filesdf.to_csv(args.output, index=False)
@@ -29,7 +28,6 @@ def build_parser():
                     'track entities in a Project or Folder.  For more '
                     'information, head to '
                     'https://docs.synapse.org/articles/views.html'
-
     )
     parser.add_argument(
         '-c', '--synapse_config', metavar='file', type=str,
@@ -46,7 +44,6 @@ def build_parser():
         'view',
         help='Monitor entities tracked in a Synapse Fileview.'
     )
-
     parser_monitor.add_argument(
         'viewid', metavar='id', type=str,
         help='Synapse ID of fileview to be monitored.'
@@ -63,18 +60,13 @@ def build_parser():
     parser_monitor.add_argument(
         '--email_subject',
         default='New Synapse Files',
-        help='Sets the subject heading of the email sent out. '
-             'Defaults to "New Synapse Files"'
+        help='Sets the subject heading of the email sent out.'
+             '(default: %(default)s)'
     )
-    group = parser_monitor.add_mutually_exclusive_group()
-    group.add_argument(
-        '--days', '-d', metavar='days', type=float, default=None,
-        help='Find modifications in the last days'
-    )
-    group.add_argument(
-        '--use_last_audit_time', action='store_true',
-        help='Use the last audit time. This value is stored'
-             'as an annotation on the file view.'
+    parser_monitor.add_argument(
+        '--days', '-d', metavar='days', type=int, default=1,
+        help='Find modifications to entities in the last N days.'
+             '(default: %(default)s)'
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
