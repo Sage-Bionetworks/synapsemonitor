@@ -35,7 +35,7 @@ from synapsemonitor import monitor
 #         assert epochtime == 777600000
 
 
-def test_find_new_files():
+def test_find_modified_entities():
     project = Project(id="syn2222", name="testing")
     syn = Mock()
     table_query_results = Mock()
@@ -58,5 +58,5 @@ def test_find_new_files():
          patch.object(syn, "getUserProfile",
                       return_value={"userName": "user"}):
 
-        resultdf = monitor.find_new_files(syn, "syn44444", 2)
+        resultdf = monitor.find_modified_entities(syn, "syn44444", days=2)
         assert resultdf.equals(expecteddf)

@@ -22,9 +22,10 @@ def create_file_view(syn: Synapse, project_id: str) -> EntityViewSchema:
     return syn.store(view)
 
 
-def find_new_files(syn: Synapse, view_id: str,
-                   days: int = 1) -> pd.DataFrame:
-    """Performs query to find changed entities in id and render columns
+def find_modified_entities(syn: Synapse, view_id: str,
+                           days: int = 1) -> pd.DataFrame:
+    """Performs query to find modified entities in id and render columns
+    These modified entities include newly uploaded ones
 
     Args:
         syn: Synapse connection
@@ -89,7 +90,7 @@ def monitoring(syn: Synapse, synid: str, userids: list = None,
         raise ValueError(f"{synid} must be a Synapse File View")
 
     # get dataframe of files
-    filesdf = find_new_files(syn, entity.id, days=days)
+    filesdf = find_modified_entities(syn, entity.id, days=days)
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
 
