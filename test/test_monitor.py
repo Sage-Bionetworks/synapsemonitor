@@ -3,6 +3,8 @@ from unittest import mock
 from unittest.mock import Mock, patch
 
 import pandas as pd
+import pytest
+from synapseclient import EntityViewSchema, Project
 
 from synapsemonitor import monitor
 
@@ -76,3 +78,16 @@ def test__get_user_ids():
         user_ids = monitor._get_user_ids(syn, [1, "username"])
         patch_get.has_calls([mock.call(1), mock.call("username")])
         assert user_ids == ["111", "111"]
+
+
+class TestMonitoring:
+    """Test monitoring function, includes integration test"""
+    def setup_method(self):
+        self.syn = Mock()
+
+    def test_monitoring_fail_entity(self):
+        """Test only FileView entities are accepted"""
+        entity = Project(id="syn12345")
+        with pytest.raises(ValueError, match="syn12345 must be a Synapse File View"),\
+            patch.object(self.syn, "get", return_value=entity) as patch_get:
+            monitor.monitoring(self.syn, "syn12345")
