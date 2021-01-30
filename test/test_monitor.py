@@ -88,6 +88,26 @@ class TestMonitoring:
     def test_monitoring_fail_entity(self):
         """Test only FileView entities are accepted"""
         entity = Project(id="syn12345")
-        with pytest.raises(ValueError, match="syn12345 must be a Synapse File View"),\
+        with pytest.raises(ValueError,
+                           match="syn12345 must be a Synapse File View"),\
             patch.object(self.syn, "get", return_value=entity) as patch_get:
             monitor.monitoring(self.syn, "syn12345")
+
+    def test_monitoring_fail_integration(self):
+        """Test all monitoring functions are called"""
+        entity = EntityViewSchema(id="syn12345", parentId="syn3333")
+        returndf = pd.DataFrame()
+        with patch.object(self.syn, "get", return_value=entity) as patch_get,\
+             patch.object(monitor, "find_modified_entities",
+                          return_value=returndf) as patch_find,\
+             patch.object(monitor, "_get_user_ids",
+                          return_value=[111]) as patch_get_user,\
+             patch.object(self.syn, "sendMessage") as patch_send:
+            monitor.monitoring(self.syn, "syn12345", users=["2222", "fooo"],
+                               email_subject="new subject", days=15)
+            patch_get.assert_called_once_with("syn12345")
+            patch_find.assert_called_once_with(self.syn, "syn12345", days=15)
+            patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
+            patch_send.assert_called_once_with([111], "new subject",
+                                               returndf.to_html(index=False),
+                                               contentType='text/html')

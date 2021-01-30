@@ -135,7 +135,7 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     # Update the view
     # _force_update_view(syn, view_id)
     # get dataframe of files
-    filesdf = find_modified_entities(syn, entity.id, days=days)
+    filesdf = find_modified_entities(syn, view_id, days=days)
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
 
