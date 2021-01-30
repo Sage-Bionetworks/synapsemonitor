@@ -32,6 +32,39 @@ def create_file_view(syn: Synapse, name: str, project_id: str,
     return syn.store(view)
 
 
+def _render_fileview(syn: Synapse, viewdf: pd.DataFrame) -> pd.DataFrame:
+    """Renders file view values such as changing modifiedOn from
+    Epoch time to string or userids to usernames
+
+    Args:
+        viewdf: File view dataframe
+
+    Returns:
+        Rendered File view dataframe
+
+    """
+    modified_on_dates = []
+    created_on_dates = []
+    users = []
+    for _, row in viewdf.iterrows():
+        modified_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['modifiedOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
+        created_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['createdOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
+        users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
+
+    viewdf['modifiedOn'] = modified_on_dates
+    viewdf['createdOn'] = created_on_dates
+    viewdf['modifiedBy'] = users
+    return viewdf
+
+
 def find_modified_entities(syn: Synapse, view_id: str,
                            days: int = 1) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
@@ -50,30 +83,10 @@ def find_modified_entities(syn: Synapse, view_id: str,
              f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
-    modified_on_dates = []
-    created_on_dates = []
-    users = []
-    for _, row in resultsdf.iterrows():
-        modified_on_dates.append(
-            synapseclient.core.utils.from_unix_epoch_time(
-                row['modifiedOn']
-            ).strftime("%b/%d/%Y %H:%M")
-        )
-        created_on_dates.append(
-            synapseclient.core.utils.from_unix_epoch_time(
-                row['createdOn']
-            ).strftime("%b/%d/%Y %H:%M")
-        )
-        users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
-
-    resultsdf['modifiedOn'] = modified_on_dates
-    resultsdf['createdOn'] = created_on_dates
-    resultsdf['modifiedBy'] = users
-
-    return resultsdf
+    return _render_fileview(syn, viewdf=resultsdf)
 
 
-def _force_update_view(syn, view_id):
+def _force_update_view(syn: Synapse, view_id: str):
     """File views are not indexed unless someone queries them by
     going to the file view on Synapse or querying them via a function
     call.  This will force the update of the file view to ensure the most
@@ -86,7 +99,25 @@ def _force_update_view(syn, view_id):
     syn.tableQuery(f"select * from {view_id} limit 1")
 
 
-def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
+def _get_user_ids(syn: Synapse, users: list = None):
+    """Get users ids from list of user ids or usernames.  This will also
+    confirm that the users specified exist in the system
+
+    Args:
+        syn: Synapse connection
+        users: List of Synapse user Ids or usernames
+
+    Returns:
+        List of Synapse user Ids.
+    """
+    if users is None:
+        user_ids = [syn.getUserProfile()['ownerId']]
+    else:
+        user_ids = [syn.getUserProfile(user)['ownerId'] for user in users]
+    return user_ids
+
+
+def monitoring(syn: Synapse, view_id: str, users: list = None,
                email_subject: str = "New Synapse Files",
                days: int = 1) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
@@ -94,8 +125,8 @@ def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
     Args:
         syn: Synapse connection
         synid: Synapse ID of fileview to be monitored.
-        userid: User Ids of individual to send report.  If empty,
-                defaults to current logged in Synapse user.
+        users: User Id or usernames of individual to send report.
+               If empty, defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (default: 'New Synapse Files')
         days: Find modifications in the last N days (default: 1)
@@ -114,18 +145,17 @@ def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
     # Update the view
     # _force_update_view(syn, view_id)
     # get dataframe of files
-    filesdf = find_modified_entities(syn, entity.id, days=days)
+    filesdf = find_modified_entities(syn, view_id, days=days)
     # Filter out projects and folders
     print(f'Total number of entities = {len(filesdf.index)}')
 
-    # get users
-    if user_ids is None:
-        users = [syn.getUserProfile()['ownerId']]
-    else:
-        users = [syn.getUserProfile(user)['ownerId'] for user in user_ids]
+    # get user ids
+    user_ids = _get_user_ids(syn, users)
+
+    # TODO: Add function to beautify email message
 
     # Prepare and send Message
-    syn.sendMessage(users, email_subject,
+    syn.sendMessage(user_ids, email_subject,
                     filesdf.to_html(index=False),
                     contentType='text/html')
     return filesdf

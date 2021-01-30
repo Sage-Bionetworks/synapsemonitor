@@ -10,7 +10,7 @@ from . import monitor
 def monitor_cli(syn, args):
     """Monitor cli"""
     filesdf = monitor.monitoring(
-        syn, args.view_id, user_ids=args.user_ids,
+        syn, args.view_id, users=args.users,
         email_subject=args.email_subject,
         days=args.days
     )
@@ -62,9 +62,9 @@ def build_parser():
         help='Synapse ID of fileview to be monitored.'
     )
     parser_monitor.add_argument(
-        '--user_ids', nargs='+',
-        help='User Id of individuals to send report. If not specified will '
-             'defaults to logged in Synapse user.'
+        '--users', nargs='+',
+        help='User Id or username of individuals to send report. '
+             'If not specified will defaults to logged in Synapse user.'
     )
     parser_monitor.add_argument(
         '--output',
@@ -73,12 +73,12 @@ def build_parser():
     parser_monitor.add_argument(
         '--email_subject',
         default='New Synapse Files',
-        help='Sets the subject heading of the email sent out.'
+        help='Sets the subject heading of the email sent out. '
              '(default: %(default)s)'
     )
     parser_monitor.add_argument(
         '--days', '-d', metavar='days', type=int, default=1,
-        help='Find modifications to entities in the last N days.'
+        help='Find modifications to entities in the last N days. '
              '(default: %(default)s)'
     )
     parser_monitor.set_defaults(func=monitor_cli)
