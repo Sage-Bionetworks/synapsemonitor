@@ -41,19 +41,27 @@ def find_new_files(syn: Synapse, view_id: str,
     query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
              "createdOn, projectId, type "
              f"from {view_id} where modifiedOn > {epochtime}")
+    #unix_timestamp(NOW() - INTERVAL 30 DAY)*1000
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
-    dates = []
+    modified_on_dates = []
+    created_on_dates = []
     users = []
     for _, row in resultsdf.iterrows():
-        dates.append(
+        modified_on_dates.append(
             synapseclient.core.utils.from_unix_epoch_time(
                 row['modifiedOn']
             ).strftime("%b/%d/%Y %H:%M")
         )
+        created_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['createdOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
         users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
 
-    resultsdf['modifiedOn'] = dates
+    resultsdf['modifiedOn'] = modified_on_dates
+    resultsdf['createdOn'] = created_on_dates
     resultsdf['modifiedBy'] = users
 
     return resultsdf
@@ -104,6 +112,7 @@ def get_audit_time(syn, view, days, use_last_audit_time=False):
     current_time = time.time()*1000
     epochtime = _get_audit_time(current_time, days, view, use_last_audit_time)
     try:
+        view.lastAuditTimeStamp = current_time
         syn.store(view)
     except synapseclient.core.exceptions.SynapseHTTPError:
         pass
@@ -123,7 +132,7 @@ def monitoring(syn: Synapse, synid: str, userids: list = None,
                 defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (Defaults to 'New Synapse Files')
-        days: Find modifications in the last days
+        days: Find modifications in the last N days
         use_last_audit_time: Use the last audit time. This value is stored
                              as an annotation on the file view.
                              (Default to False)
