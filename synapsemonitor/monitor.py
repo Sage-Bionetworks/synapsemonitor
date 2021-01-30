@@ -127,6 +127,8 @@ def monitoring(syn: Synapse, view_id: str, user_ids: list = None,
     else:
         users = [syn.getUserProfile(user)['ownerId'] for user in user_ids]
 
+    # TODO: Add function to beautify email message
+
     # Prepare and send Message
     syn.sendMessage(users, email_subject,
                     filesdf.to_html(index=False),
