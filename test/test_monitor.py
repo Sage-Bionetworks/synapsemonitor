@@ -90,7 +90,7 @@ class TestMonitoring:
         entity = Project(id="syn12345")
         with pytest.raises(ValueError,
                            match="syn12345 must be a Synapse File View"),\
-            patch.object(self.syn, "get", return_value=entity) as patch_get:
+            patch.object(self.syn, "get", return_value=entity):
             monitor.monitoring(self.syn, "syn12345")
 
     def test_monitoring_fail_integration(self):
