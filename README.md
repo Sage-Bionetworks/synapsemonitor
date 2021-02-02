@@ -1,12 +1,11 @@
 ## Synapse Monitoring
+[![Get synapsemonitor from PyPI](https://img.shields.io/pypi/v/synapsemonitor.svg?style=for-the-badge&logo=pypi)](https://pypi.python.org/pypi/synapsemonitor)
 
 Provides tools for monitoring and keeping track of file entity changes in Synapse with the use of File Views.
 
 ## Installation
 ```
-git clone https://github.com/Sage-Bionetworks/synapsemonitor.git
-cd synapsemonitor
-pip install .
+pip install synapsemonitor
 ```
 
 ### Create email notifications to modifications.
