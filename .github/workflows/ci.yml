@@ -46,8 +46,12 @@ jobs:
     #   # Use always() to always run this step to publish test results when there are test failures
     #   if: ${{ always() }}
 
+  public_to_pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
     - name: Publish package
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && success()
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
