@@ -131,7 +131,7 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     # and can choose the scope of the fileview. (Scope meaning)
     # the entities they want to have tracked.
     if not isinstance(entity, synapseclient.EntityViewSchema):
-        raise ValueError(f"{view_id} must be a Synapse File View")
+        raise ValueError(f"{view_id} must be a Synapse File View. Please review 'create_file_view' function to create a Synapse File View")
     # Update the view
     # _force_update_view(syn, view_id)
     # get dataframe of files
