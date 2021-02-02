@@ -1,109 +1,165 @@
-#!/usr/bin/env python
+"""Monitor Synapse Project"""
+import typing
 
+import pandas as pd
 import synapseclient
-import calendar
-import time
-import argparse
-import multiprocessing.dummy as mp
-
-ONEDAY=86400000 #default delta t is 10 days prior
+from synapseclient import EntityViewSchema, EntityViewType, Synapse
 
 
-def findNewFiles(args, id):
-    """Performs query query to find changed entities in id. """
+def create_file_view(syn: Synapse, name: str, project_id: str,
+                     scope_ids: typing.List[str]) -> EntityViewSchema:
+    """Creates a file view that will list all the File entities under
+    the specified scopes (Synapse Folders or Projects). This will
+    allow you to query for the files contained in your specified scopes.
+    This will NOT track the other entities currently: PROJECT, TABLE,
+    FOLDER, VIEW, DOCKER.
 
-    QUERY = "select id, name, versionNumber, modifiedOn, modifiedByPrincipalId, nodeType from entity where projectId=='%s' and modifiedOn>%i" 
-    t = calendar.timegm(time.gmtime())*1000
-    project = syn.get(id)
-    #Determine the last audit time or overide with lastTime
-    if args.days is None:  #No time specified
-        args.days = project.get('lastAuditTimeStamp', None)
-        if args.days is None:  #No time specified and no lastAuditTimeStamp set
-            args.days = t - ONEDAY*1.1
-        else: #args.days came from annotation strip out from list
-            args.days = args.days[0]  
-    print t, args.days, id, (t-args.days)/float(ONEDAY), 'days'
-    results = list(syn.chunkedQuery(QUERY % (id, args.days)))
-    #Add the project and other metadata
-    for r in results:
-        r['projectId'] = id
-        r['projectName'] = project.name
-        r['date'] = synapseclient.utils.from_unix_epoch_time(r['entity.modifiedOn']).strftime("%b/%d/%Y %H:%M")
-        r['user'] = syn.getUserProfile(r['entity.modifiedByPrincipalId'])['userName']
-        r['type'] = r['entity.nodeType']
-        
-    #Set lastAuditTimeStamp
-    if args.updateProject:
-        project.lastAuditTimeStamp = t
-        try:
-            project = syn.store(project)
-        except synapseclient.exceptions.SynapseHTTPError:
-            pass
-    return results
+    Args:
+        syn: Synapse connection
+        name: File view name
+        project_id: Synapse project id to store your file view
+        scope_ids: List of Folder or Project synapse Ids
 
-def composeMessage(entityList):
-    """Composes a message with the contents of entityList """
-    
-    messageHead=('<h4>Time of Audit: %s </h4>'%time.ctime() +
-                 '<table border=1><tr>'
-                 '<th>Project</th>'
-                 '<th>Entity</th>'
-                 '<th>Ver.</th>'
-                 '<th>Type</th>'
-                 '<th>Change Time</th>'
-                 '<th>Contributor</th></tr>'  )
-    lines = [('<tr><td><a href="https://www.synapse.org/#!Synapse:%(projectId)s">%(projectName)s</a></td>'
-              '<td><a href="https://www.synapse.org/#!Synapse:%(entity.id)s">(%(entity.id)s)</a> %(entity.name)s </td>'
-              '<td>%(entity.versionNumber)s</td>'
-              '<td>%(type)s</td>'
-              '<td>%(date)s</td>'
-              '<td><a href="https://www.synapse.org/#!Profile:%(entity.modifiedByPrincipalId)s">%(user)s</a></td></tr>')%item for 
-             item in entityList]
-    return messageHead + '\n'.join(lines)+'</table></body>'
+    Returns:
+        Synapse file view
+    """
+    view = EntityViewSchema(name=name,
+                            parent=project_id,
+                            scopes=scope_ids,
+                            includeEntityTypes=[EntityViewType.FILE],
+                            add_default_columns=True,
+                            addAnnotationColumns=False)
+    return syn.store(view)
 
 
-def build_parser():
-    """Set up argument parser and returns"""
-    parser = argparse.ArgumentParser(
-        description='Checks for new/modified entities in a project.')
-    parser.add_argument('--userId', dest='userId',
-                        help='User Id of individual to send report, defaults to current user.')
-    parser.add_argument('--projects', '-p', metavar='projects', type=str, nargs='*',
-            help='Synapse IDs of projects to be monitored.')
-    parser.add_argument('--days', '-d', metavar='days', type=float, default=None,
-            help='Find modifications in the last days')
-    parser.add_argument('--updateProject', dest='updateProject',  action='store_true',
-            help='If set will modify the annotations by setting lastAuditTimeStamp to the current time on each project.')
-    parser.add_argument('--emailSubject', dest='emailSubject',  default = 'Updated Synapse Files',
-            help='Sets the subject heading of the email sent out (defaults to Updated Synapse Files')
-    parser.add_argument('--config', metavar='file', dest='configPath',  type=str,
-            help='Synapse config file with user credentials (overides default ~/.synapseConfig)')
-    return parser
+def _render_fileview(syn: Synapse, viewdf: pd.DataFrame) -> pd.DataFrame:
+    """Renders file view values such as changing modifiedOn from
+    Epoch time to string or userids to usernames
+
+    Args:
+        viewdf: File view dataframe
+
+    Returns:
+        Rendered File view dataframe
+
+    """
+    modified_on_dates = []
+    created_on_dates = []
+    users = []
+    for _, row in viewdf.iterrows():
+        modified_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['modifiedOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
+        created_on_dates.append(
+            synapseclient.core.utils.from_unix_epoch_time(
+                row['createdOn']
+            ).strftime("%b/%d/%Y %H:%M")
+        )
+        users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
+
+    viewdf['modifiedOn'] = modified_on_dates
+    viewdf['createdOn'] = created_on_dates
+    viewdf['modifiedBy'] = users
+    return viewdf
 
 
-p = mp.Pool(6)
-args = build_parser().parse_args()
-args.days = None if args.days is None else calendar.timegm(time.gmtime())*1000 - args.days*ONEDAY
-if args.configPath is not None:
-    syn=synapseclient.Synapse(skip_checks=True, configPath=args.configPath)
-else:
-    syn=synapseclient.Synapse(skip_checks=True)
-syn.login(silent=True) 
-args.userId = syn.getUserProfile()['ownerId'] if args.userId is None else args.userId
+def find_modified_entities(syn: Synapse, view_id: str,
+                           days: int = 1) -> pd.DataFrame:
+    """Performs query to find modified entities in id and render columns
+    These modified entities include newly uploaded ones
+
+    Args:
+        syn: Synapse connection
+        view_id: Synapse View Id
+        epochtime: Epoch time in milliseconds
+
+    Returns:
+        Dataframe with updated entities
+    """
+    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
+             f"createdOn, projectId, type from {view_id} where "
+             f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
+    results = syn.tableQuery(query)
+    resultsdf = results.asDataFrame()
+    return _render_fileview(syn, viewdf=resultsdf)
 
 
-#query each project then combine into long list
-entityList = p.map(lambda project: findNewFiles(args, project), args.projects)
-entityList = [item for sublist in entityList for item in sublist]
-#Filter out projects and folders
-entityList = [e for e in entityList if e['entity.nodeType'] not in ['project', 'folder']]
-print 'Total number of entities = ', len(entityList)
+def _force_update_view(syn: Synapse, view_id: str):
+    """File views are not indexed unless someone queries them by
+    going to the file view on Synapse or querying them via a function
+    call.  This will force the update of the file view to ensure the most
+    up to date fileview is used.
 
-#Prepare and send Message
-syn.sendMessage([args.userId], 
-                args.emailSubject, 
-                composeMessage(entityList),
-                contentType = 'text/html')
-
+    Args:
+        syn: Synapse connection
+        view_id: Synapse ID of fileview to be monitored.
+    """
+    syn.tableQuery(f"select * from {view_id} limit 1")
 
 
+def _get_user_ids(syn: Synapse, users: list = None):
+    """Get users ids from list of user ids or usernames.  This will also
+    confirm that the users specified exist in the system
+
+    Args:
+        syn: Synapse connection
+        users: List of Synapse user Ids or usernames
+
+    Returns:
+        List of Synapse user Ids.
+    """
+    if users is None:
+        user_ids = [syn.getUserProfile()['ownerId']]
+    else:
+        user_ids = [syn.getUserProfile(user)['ownerId'] for user in users]
+    return user_ids
+
+
+def monitoring(syn: Synapse, view_id: str, users: list = None,
+               email_subject: str = "New Synapse Files",
+               days: int = 1) -> pd.DataFrame:
+    """Monitor the modifications of an entity scoped by a Fileview.
+
+    Args:
+        syn: Synapse connection
+        synid: Synapse ID of fileview to be monitored.
+        users: User Id or usernames of individual to send report.
+               If empty, defaults to current logged in Synapse user.
+        email_subject: Sets the subject heading of the email sent out.
+                       (default: 'New Synapse Files')
+        days: Find modifications in the last N days (default: 1)
+
+    Returns:
+        Dataframe with files modified within last N days
+    """
+
+    entity = syn.get(view_id)
+    # Code review decision to only allow file views so that
+    # Users can decide where they want to store their own fileview
+    # and can choose the scope of the fileview. (Scope meaning)
+    # the entities they want to have tracked.
+    if not isinstance(entity, synapseclient.EntityViewSchema):
+        raise ValueError(
+            f"{view_id} must be a Synapse File View. Please "
+            "review 'create_file_view' function to create a Synapse File View"
+        )
+    # Update the view
+    # _force_update_view(syn, view_id)
+    # get dataframe of files
+    filesdf = find_modified_entities(syn, view_id, days=days)
+    # Filter out projects and folders
+    print(f'Total number of entities = {len(filesdf.index)}')
+
+    # get user ids
+    user_ids = _get_user_ids(syn, users)
+
+    # TODO: Add function to beautify email message
+
+    # Prepare and send Message
+    if not filesdf.empty:
+        syn.sendMessage(user_ids, email_subject,
+                        filesdf.to_html(index=False),
+                        contentType='text/html')
+    return filesdf
