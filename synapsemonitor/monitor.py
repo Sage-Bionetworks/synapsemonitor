@@ -145,7 +145,8 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     # TODO: Add function to beautify email message
 
     # Prepare and send Message
-    syn.sendMessage(user_ids, email_subject,
-                    filesdf.to_html(index=False),
-                    contentType='text/html')
+    if not filesdf.empty:
+        syn.sendMessage(user_ids, email_subject,
+                        filesdf.to_html(index=False),
+                        contentType='text/html')
     return filesdf
