@@ -4,8 +4,8 @@ Provides tools for monitoring and keeping track of file entity changes in Synaps
 
 ## Installation
 ```
-git clone https://github.com/Sage-Bionetworks/synapseMonitor.git
-cd synapse-monitor
+git clone https://github.com/Sage-Bionetworks/synapsemonitor.git
+cd synapsemonitor
 pip install .
 ```
 
