@@ -4,6 +4,8 @@
 name: build
 
 on:
+  release:
+    types: [created]
   pull_request:
   push:
     branches:
