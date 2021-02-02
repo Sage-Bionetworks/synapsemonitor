@@ -5,7 +5,7 @@ name: build
 
 on:
   release:
-    types: [created, edited]
+    types: [created]
   pull_request:
   push:
     branches:
