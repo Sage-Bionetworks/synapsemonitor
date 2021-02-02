@@ -20,6 +20,17 @@ def monitor_cli(syn, args):
         print(filesdf.to_csv(index=False))
 
 
+def create_file_view_cli(syn, args):
+    """Create file view cli"""
+    fileview = monitor.create_file_view(
+        syn, name=args.name, project_id=args.project_id,
+        scope_ids=args.scope_ids
+    )
+    print("To monitor the files in your specified scope, "
+          "you can run the command line function:")
+    print(f"$ synapsemonitor view {fileview.id} --days 4")
+
+
 def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
@@ -27,7 +38,9 @@ def build_parser():
                     'A Synapse Fileview can be created to allow users to '
                     'track entities in a Project or Folder.  For more '
                     'information, head to '
-                    'https://docs.synapse.org/articles/views.html'
+                    'https://docs.synapse.org/articles/views.html. '
+                    'You can use the `create-file-view` function provided '
+                    'in this package to create a File View.'
     )
     parser.add_argument(
         '-c', '--synapse_config', metavar='file', type=str,
@@ -69,6 +82,28 @@ def build_parser():
              '(default: %(default)s)'
     )
     parser_monitor.set_defaults(func=monitor_cli)
+
+    parser_create_view = subparsers.add_parser(
+        'create-file-view',
+        help='Creates a file view that will list all the File entities under '
+             'the specified scopes (Synapse Folders or Projects). This will '
+             'allow you to query for the files contained in your specified '
+             'scopes. This will NOT track the other entities currently: '
+             'PROJECT, TABLE, FOLDER, VIEW, DOCKER.'
+    )
+    parser_create_view.add_argument(
+        'name', metavar='NAME', type=str,
+        help='File View name'
+    )
+    parser_create_view.add_argument(
+        'project_id',
+        help='Synapse Project Id to store file view in'
+    )
+    parser_create_view.add_argument(
+        '--scope_ids', nargs='+', required=True,
+        help='Synapse Folder / Project Ids'
+    )
+    parser_create_view.set_defaults(func=create_file_view_cli)
 
     return parser
 
