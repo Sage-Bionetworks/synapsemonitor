@@ -1,16 +1,16 @@
 ## Synapse Monitoring
 [![Get synapsemonitor from PyPI](https://img.shields.io/pypi/v/synapsemonitor.svg?style=for-the-badge&logo=pypi)](https://pypi.python.org/pypi/synapsemonitor)
 
-Provides tools for monitoring and keeping track of file entity changes in Synapse with the use of File Views.
+Provides tools for monitoring and keeping track of File entity changes in Synapse with the use of File Views. Learn more about [File Views](https://docs.synapse.org/articles/views.html)
 
 ## Installation
 ```
 pip install synapsemonitor
 ```
 
-### Create email notifications to modifications.
+### Monitor Fileview and send email notifications
 
-Monitors a project or entities provided in the scope of a fileview for changes and sends an email through the Synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
+Monitors a project or entities provided in the scope of a File View for changes and sends an email through the Synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.  Please see [Create File View](#create-file-view) if you do not have a File View.
 
 ```
 usage: synapsemonitor view [-h] [--user_ids USER_IDS [USER_IDS ...]]
@@ -32,6 +32,26 @@ optional arguments:
                         out.(default: New Synapse Files)
   --days days, -d days  Find modifications to entities in the last N
                         days.(default: 1)
+```
+
+### Create File View
+
+Creates a file view that will list all the File entities under the specified scopes (Synapse Folders or Projects). This will allow you to query for the files contained in your specified scopes. This will NOT track the other entities currently: PROJECT, TABLE, FOLDER, VIEW, DOCKER.
+
+```
+synapsemonitor create-file-view -h
+usage: synapsemonitor create-file-view [-h] --scope_ids SCOPE_IDS
+                                       [SCOPE_IDS ...]
+                                       NAME project_id
+
+positional arguments:
+  NAME                  File View name
+  project_id            Synapse Project Id to store file view in
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --scope_ids SCOPE_IDS [SCOPE_IDS ...]
+                        Synapse Folder / Project Ids
 ```
 
 <!--
