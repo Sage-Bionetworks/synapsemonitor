@@ -96,7 +96,7 @@ class TestMonitoring:
     def test_monitoring_fail_integration(self):
         """Test all monitoring functions are called"""
         entity = EntityViewSchema(id="syn12345", parentId="syn3333")
-        returndf = pd.DataFrame()
+        returndf = pd.DataFrame({"test": ["foo"]})
         with patch.object(self.syn, "get", return_value=entity) as patch_get,\
              patch.object(monitor, "find_modified_entities",
                           return_value=returndf) as patch_find,\
