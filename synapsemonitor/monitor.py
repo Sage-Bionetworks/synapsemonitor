@@ -32,35 +32,33 @@ def create_file_view(syn: Synapse, name: str, project_id: str,
     return syn.store(view)
 
 
-def _render_fileview(syn: Synapse, viewdf: pd.DataFrame) -> pd.DataFrame:
+def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
+                     tz_name='US/Pacific') -> pd.DataFrame:
     """Renders file view values such as changing modifiedOn from
     Epoch time to string or userids to usernames
 
     Args:
+        syn: Synapse connection
         viewdf: File view dataframe
+        tz_name: Timezone database name
+                 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
     Returns:
         Rendered File view dataframe
 
     """
-    modified_on_dates = []
-    created_on_dates = []
-    users = []
-    for _, row in viewdf.iterrows():
-        modified_on_dates.append(
-            synapseclient.core.utils.from_unix_epoch_time(
-                row['modifiedOn']
-            ).strftime("%b/%d/%Y %H:%M")
-        )
-        created_on_dates.append(
-            synapseclient.core.utils.from_unix_epoch_time(
-                row['createdOn']
-            ).strftime("%b/%d/%Y %H:%M")
-        )
-        users.append(syn.getUserProfile(row['modifiedBy'])['userName'])
-
-    viewdf['modifiedOn'] = modified_on_dates
-    viewdf['createdOn'] = created_on_dates
+    viewdf['createdOn'] = (
+        pd.to_datetime(viewdf['createdOn'],  unit='ms')
+        .dt.tz_localize('utc')
+        .dt.tz_convert(tz_name)
+    )
+    viewdf['modifiedOn'] = (
+        pd.to_datetime(viewdf['modifiedOn'], unit='ms')
+        .dt.tz_localize('utc')
+        .dt.tz_convert(tz_name)
+    )
+    users = [syn.getUserProfile(user)['userName']
+             for user in viewdf['modifiedBy']]
     viewdf['modifiedBy'] = users
     return viewdf
 
