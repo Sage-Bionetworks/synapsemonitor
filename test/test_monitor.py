@@ -24,11 +24,18 @@ class TestModifiedEntities:
         self.query_resultsdf = pd.DataFrame(query_results)
         self.expecteddf = pd.DataFrame({
             "id": ["syn23333"], "name": ["test"],
-            'currentVersion': [2], 'modifiedOn': ["1970-01-12 05:46:40-08:00"],
+            'currentVersion': [2],
+            'modifiedOn': ["1970-01-12 05:46:40-08:00"],
             'createdOn': ["1970-01-12 05:46:40-08:00"],
             'modifiedBy': ["user"], 'type': "file",
             'projectId': 'syn55555'
         })
+        self.expecteddf['createdOn'] = self.expecteddf['createdOn'].astype(
+            'datetime64[ns, US/Pacific]'
+        )
+        self.expecteddf['modifiedOn'] = self.expecteddf['modifiedOn'].astype(
+            'datetime64[ns, US/Pacific]'
+        )
 
     def test__render_fileview(self):
         """Test rendering of file view"""
@@ -37,8 +44,6 @@ class TestModifiedEntities:
             rendereddf = monitor._render_fileview(self.syn,
                                                   self.query_resultsdf)
             patch_get.assert_called_once_with(333333)
-            rendereddf['createdOn'] = rendereddf['createdOn'].astype(str)
-            rendereddf['modifiedOn'] = rendereddf['modifiedOn'].astype(str)
             assert rendereddf.equals(self.expecteddf)
 
     def test_find_modified_entities(self):
