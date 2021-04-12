@@ -33,13 +33,20 @@ def create_file_view_cli(syn, args):
 
 def create_view_changelog_cli(syn, args):
     """Update activity cli"""
-    update_activity_feed.create_view_changelog(
+    markdown = update_activity_feed.create_view_changelog(
         syn=syn, view_id=args.view_id,
-        project_id=args.project_id,
         delta_time=args.interval,
         earliest_time=args.earliest_time,
-        wiki_id=args.wiki
     )
+    if args.project_id is not None:
+        update_activity_feed.update_wiki(
+            syn=syn, project_id=args.project_id, markdown=markdown,
+            wiki_id=args.wiki_id
+        )
+    if args.markdown_path is not None:
+        with open(args.markdown_path, "w") as markdown_f:
+            markdown_f.write(markdown)
+
 
 
 def build_parser():
@@ -97,20 +104,27 @@ def build_parser():
     parser_update = subparsers.add_parser(
         'create-view-changelog',
         help='Looks for changes to a fileview in defined time ranges and '
-             'updates a wiki page'
+             'has the option of writing to a Synapse wiki page and writing '
+             'to a markdown file.'
     )
     parser_update.add_argument(
         'view_id', help='Synapse ID of fileview.'
     )
     parser_update.add_argument(
-        '--project_id', '-p', type=str, required=True,
-        help='Synapse project id to store the changelog'
+        '--project_id', '-p', type=str,
+        help='If specified, will store changelog to '
+             'homepage of Synapse project'
     )
     parser_update.add_argument(
-        '--wiki', '-w', type=str,
+        '--wiki_id', '-w', type=str,
         help='Optional sub-wiki id where to store change-log '
              '(defaults to project wiki)'
     )
+    parser_update.add_argument(
+        '--markdown_path', type=str,
+        help='If specified, will write changelog to a markdown file'
+    )
+
     parser_update.add_argument(
         '-i', '--interval',
         choices=['week', 'month'], default='week',

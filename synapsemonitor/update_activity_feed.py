@@ -6,6 +6,7 @@ import dateutil.parser
 
 import pandas as pd
 import synapseclient
+from synapseclient import Synapse
 
 from . import monitor
 
@@ -15,7 +16,10 @@ EPOCHSTART = datetime.datetime(1970, 1, 1)
 MAX_FOR_SUMMARY = 4
 
 
-def get_changes(syn, start, end, view_id):
+def get_changes(syn: Synapse,
+                start: datetime.datetime,
+                end: datetime.datetime,
+                view_id: str) -> pd.DataFrame:
     """Finds entities that are new, or updated given a start and end time
 
     Args:
@@ -23,6 +27,10 @@ def get_changes(syn, start, end, view_id):
         start: Start time
         end: end time
         view_id: Synapse View Id
+
+    Returns:
+        Dataframe with new and updated entities
+
     """
     start = int((start - EPOCHSTART).total_seconds())*1000
     end = int((end - EPOCHSTART).total_seconds())*1000
@@ -51,8 +59,17 @@ def get_changes(syn, start, end, view_id):
 
 
 @synapseclient.core.utils.memoize
-def get_parent_name(syn, syn_id):
-    """Returns the name of an entity"""
+def get_entity_name(syn: Synapse, syn_id: str) -> str:
+    """Returns the name of an entity
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Id
+
+    Returns:
+        Entity name
+
+    """
     entity = syn.get(syn_id, downloadFile=False)
     return entity.name.replace('_', '\_')
 
@@ -77,7 +94,7 @@ def print_updates(syn, md, df):
             elif n_new == 1:
                 md.write(f'{n_new} new file was added ')
             md.write('to [{}](https://www.synapse.org/#!Synapse:{})\n'.format(
-                get_parent_name(syn, parent), parent
+                get_entity_name(syn, parent), parent
             ))
         else:
             for entity_id, row in files_in_parent.iterrows():
@@ -96,24 +113,35 @@ def print_updates(syn, md, df):
                     ))
 
 
-def update_wiki(syn, owner, wikiId, md):
-    """Fetches and existing wiki and overwrites the content. """
-    wiki = syn.getWiki(owner, wikiId)
-    wiki.markdown = md.getvalue()
-    return syn.store(wiki)
+def update_wiki(syn: Synapse, project_id: str, markdown: str,
+                wiki_id: str = None):
+    """Fetches and existing wiki and overwrites the content.
 
-
-def create_view_changelog(syn, view_id, project_id, delta_time,
-                          earliest_time, wiki_id):
+    Args:
+        syn: Synapse connection
+        project_id: The Id of a Synapse Project
+        markdown: Markdown text
+        wiki_id: The sub-wiki page Id.
     """
-    Create entity view changelog
-    """
-    # earliest_time = "1-Jan-2021"
-    # delta_time = "week"
-    # view_id = "syn24172191"
-    # project_id = "syn4990358"
-    # wiki_id = "607852"
+    wiki = syn.getWiki(project_id, wiki_id)
+    wiki.markdown = markdown
+    syn.store(wiki)
 
+
+def create_view_changelog(syn: Synapse, view_id: str, delta_time: str,
+                          earliest_time: str) -> str:
+    """Create entity view changelog
+
+    Args:
+        syn: Synapse connection
+        view_id: Synapse View Id
+        delta_time: "week" or "month"
+        earliest_time: The start date for which changes will be searched
+
+    Returns:
+        Markdown text with changelog
+
+    """
     earliest_time = dateutil.parser.parse(earliest_time)
     today = datetime.datetime.today()
     # Get the first time end for collecting updates
@@ -145,5 +173,6 @@ def create_view_changelog(syn, view_id, project_id, delta_time,
         # Write the output
         md.write(header_text)
         print_updates(syn, md, df)
-    update_wiki(syn, project_id, wiki_id, md)
+    markdown = md.getvalue()
     md.close()
+    return markdown
