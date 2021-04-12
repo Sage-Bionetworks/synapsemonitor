@@ -51,9 +51,9 @@ def get_changes(syn, start, end, view_id):
 
 
 @synapseclient.core.utils.memoize
-def get_parent_name(syn, synid):
+def get_parent_name(syn, syn_id):
     """Returns the name of an entity"""
-    entity = syn.get(synid, downloadFile=False)
+    entity = syn.get(syn_id, downloadFile=False)
     return entity.name.replace('_', '\_')
 
 
@@ -76,7 +76,7 @@ def print_updates(syn, md, df):
                 md.write(f'{n_new} new files were added ')
             elif n_new == 1:
                 md.write(f'{n_new} new file was added ')
-            md.write('to [{}](#!Synapse:{})\n'.format(
+            md.write('to [{}](https://www.synapse.org/#!Synapse:{})\n'.format(
                 get_parent_name(syn, parent), parent
             ))
         else:
@@ -86,11 +86,11 @@ def print_updates(syn, md, df):
                     username, row['modifiedBy']
                 )
                 if row.status == 'new':
-                    md.write('* [{}](#!Synapse:{}) was added by {})\n'.format(
+                    md.write('* [{}](https://www.synapse.org/#!Synapse:{}) was added by {})\n'.format(
                         row['name'].replace('_', '\_'), entity_id, userlink
                     ))
                 else:
-                    md.write('* [{}](#!Synapse:{}) was updated to version {} by {})\n'.format(
+                    md.write('* [{}](https://www.synapse.org/#!Synapse:{}) was updated to version {} by {})\n'.format(
                         row['name'].replace('_', '\_'), entity_id,
                         row['currentVersion'], userlink
                     ))
@@ -129,14 +129,14 @@ def create_view_changelog(syn, view_id, project_id, delta_time,
         # Calculate time start based on interval string
         if delta_time == 'week':
             t_start = t_end - datetime.timedelta(days=7)
-            header_text = '##week of {}\n'.format(
+            header_text = '\n## week of {}\n'.format(
                 t_start.strftime('%d-%B-%Y')
             )
         else:
             year, month = divmod(t_end.month-1, 12)
             year, month = (year-1, 12) if month == 0 else (year, month)
             t_start = datetime.datetime(t_end.year + year, month, 1)
-            header_text = '##{}\n'.format(t_start.strftime('%B-%Y'))
+            header_text = '\n## {}\n'.format(t_start.strftime('%B-%Y'))
         print(f'{t_start} -> {t_end}')
         df = get_changes(syn, t_start, t_end, view_id)
         t_end = t_start
