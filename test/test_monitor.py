@@ -37,6 +37,8 @@ class TestModifiedEntities:
             rendereddf = monitor._render_fileview(self.syn,
                                                   self.query_resultsdf)
             patch_get.assert_called_once_with(333333)
+            rendereddf['createdOn'] = rendereddf['createdOn'].astype(str)
+            rendereddf['modifiedOn'] = rendereddf['modifiedOn'].astype(str)
             assert rendereddf.equals(self.expecteddf)
 
     def test_find_modified_entities(self):
