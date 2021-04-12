@@ -31,12 +31,15 @@ def create_file_view_cli(syn, args):
     print(f"$ synapsemonitor view {fileview.id} --days 4")
 
 
-def update_activity_feed_cli(syn, args):
+def create_view_changelog_cli(syn, args):
     """Update activity cli"""
-    update_activity_feed.main(syn, args.projectid,
-                              delta_time=args.interval,
-                              earliest_time=args.earliest_time,
-                              wiki=args.wiki)
+    update_activity_feed.create_view_changelog(
+        syn=syn, view_id=args.view_id,
+        project_id=args.project_id,
+        delta_time=args.interval,
+        earliest_time=args.earliest_time,
+        wiki_id=args.wiki
+    )
 
 
 def build_parser():
@@ -92,12 +95,16 @@ def build_parser():
     parser_monitor.set_defaults(func=monitor_cli)
 
     parser_update = subparsers.add_parser(
-        'update_activity',
-        help='Looks for changes to project in defined time ranges and '
-             'updates a wiki'
+        'create-view-changelog',
+        help='Looks for changes to a fileview in defined time ranges and '
+             'updates a wiki page'
     )
     parser_update.add_argument(
-        'projectid', help='Synapse ID of project to be monitored.'
+        'view_id', help='Synapse ID of fileview.'
+    )
+    parser_update.add_argument(
+        '--project_id', '-p', type=str, required=True,
+        help='Synapse project id to store the changelog'
     )
     parser_update.add_argument(
         '--wiki', '-w', type=str,
@@ -108,15 +115,15 @@ def build_parser():
         '-i', '--interval',
         choices=['week', 'month'], default='week',
         help='divide changesets into either "week" or "month" long intervals '
-             '(defaults to week)'
+             '(default: %(default)s)'
     )
     parser_update.add_argument(
         '--earliest', '-e', metavar='date', dest='earliest_time',
         type=str, default='1-Jan-2014',
         help='The start date for which changes will be searched '
-             '(defaults to 1-January-2014)'
+             '(default: %(default)s)'
     )
-    parser_update.set_defaults(func=update_activity_feed_cli)
+    parser_update.set_defaults(func=create_view_changelog_cli)
 
     parser_create_view = subparsers.add_parser(
         'create-file-view',
