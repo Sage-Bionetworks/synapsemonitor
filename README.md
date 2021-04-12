@@ -1,14 +1,60 @@
 ## Synapse Monitoring
+[![Get synapsemonitor from PyPI](https://img.shields.io/pypi/v/synapsemonitor.svg?style=for-the-badge&logo=pypi)](https://pypi.python.org/pypi/synapsemonitor)
 
-Provides tools for monitoring and keeping track of changes in Synapse. There are two main features provided email notifications and activity feeds. 
-
+Provides tools for monitoring and keeping track of File entity changes in Synapse with the use of File Views. Learn more about [File Views](https://docs.synapse.org/articles/views.html)
 
 ## Installation
 ```
-git clone https://github.com/Sage-Bionetworks/synapseMonitor.git
-cd synapse-monitor
-pip install .
+pip install synapsemonitor
 ```
+
+### Monitor Fileview and send email notifications
+
+Monitors a project or entities provided in the scope of a File View for changes and sends an email through the Synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.  Please see [Create File View](#create-file-view) if you do not have a File View.
+
+```
+usage: synapsemonitor view [-h] [--user_ids USER_IDS [USER_IDS ...]]
+                           [--output OUTPUT] [--email_subject EMAIL_SUBJECT]
+                           [--days days]
+                           id
+
+positional arguments:
+  id                    Synapse ID of fileview to be monitored.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --user_ids USER_IDS [USER_IDS ...]
+                        User Id of individuals to send report. If not
+                        specified will defaults to logged in Synapse user.
+  --output OUTPUT       Output modified entities into this csv file.
+  --email_subject EMAIL_SUBJECT
+                        Sets the subject heading of the email sent
+                        out.(default: New Synapse Files)
+  --days days, -d days  Find modifications to entities in the last N
+                        days.(default: 1)
+```
+
+### Create File View
+
+Creates a file view that will list all the File entities under the specified scopes (Synapse Folders or Projects). This will allow you to query for the files contained in your specified scopes. This will NOT track the other entities currently: PROJECT, TABLE, FOLDER, VIEW, DOCKER.
+
+```
+synapsemonitor create-file-view -h
+usage: synapsemonitor create-file-view [-h] --scope_ids SCOPE_IDS
+                                       [SCOPE_IDS ...]
+                                       NAME project_id
+
+positional arguments:
+  NAME                  File View name
+  project_id            Synapse Project Id to store file view in
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --scope_ids SCOPE_IDS [SCOPE_IDS ...]
+                        Synapse Folder / Project Ids
+```
+
+<!--
 
 ### Creating activity feeds
 
@@ -35,35 +81,6 @@ optional arguments:
   --earliest date, -e date
                         The start date for which changes will be searched
                         (defaults to 1-January-2014)
-
-# Example
-synapsemonitor update_activity syn1773109 --wiki 69074 -e 1-Dec-2020
-```
-
-### Create email notifications to changes
-
-Monitors a projects for changes and sends an email through the synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.
-
-```
-synapsemonitor monitor -h
-
-usage: synapsemonitor monitor [-h] [--userid USERID]
-                              [--email_subject EMAIL_SUBJECT] [--days days]
-                              [--update_project]
-                              projectid
-
-positional arguments:
-  projectid             Synapse ID of project to be monitored.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --userid USERID       User Id of individual to send report, defaults to
-                        current user.
-  --email_subject EMAIL_SUBJECT
-                        Sets the subject heading of the email sent out
-                        (defaults to New Synapse Files)
-  --days days, -d days  Find modifications in the last days
-  --update_project      If set will modify the annotations by setting
-                        lastAuditTimeStamp to the current time on each
-                        project.
-```
+  --config file         Synapse config file with user credentials (overides
+                        default ~/.synapseConfig)
+``` -->

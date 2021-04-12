@@ -25,4 +25,4 @@ setup(name='synapsemonitor',
       zip_safe=False,
       python_requires='>=3.6, <3.9',
       entry_points={'console_scripts': ['synapsemonitor = synapsemonitor.__main__:main']},
-      install_requires=['synapseclient'])
+      install_requires=['synapseclient', 'pandas'])

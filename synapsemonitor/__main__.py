@@ -9,9 +9,26 @@ from . import monitor, update_activity_feed
 
 def monitor_cli(syn, args):
     """Monitor cli"""
-    monitor.main(syn, args.projectid,
-                 userid=args.userid, email_subject=args.email_subject,
-                 days=args.days, update_project=args.update_project)
+    filesdf = monitor.monitoring(
+        syn, args.view_id, users=args.users,
+        email_subject=args.email_subject,
+        days=args.days
+    )
+    if args.output:
+        filesdf.to_csv(args.output, index=False)
+    else:
+        print(filesdf.to_csv(index=False))
+
+
+def create_file_view_cli(syn, args):
+    """Create file view cli"""
+    fileview = monitor.create_file_view(
+        syn, name=args.name, project_id=args.project_id,
+        scope_ids=args.scope_ids
+    )
+    print("To monitor the files in your specified scope, "
+          "you can run the command line function:")
+    print(f"$ synapsemonitor view {fileview.id} --days 4")
 
 
 def update_activity_feed_cli(syn, args):
@@ -25,7 +42,13 @@ def update_activity_feed_cli(syn, args):
 def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
-        description='Checks for new/modified entities in a project.'
+        description='Checks for new/modified entities in a Fileview.'
+                    'A Synapse Fileview can be created to allow users to '
+                    'track entities in a Project or Folder.  For more '
+                    'information, head to '
+                    'https://docs.synapse.org/articles/views.html. '
+                    'You can use the `create-file-view` function provided '
+                    'in this package to create a File View.'
     )
     parser.add_argument(
         '-c', '--synapse_config', metavar='file', type=str,
@@ -39,31 +62,33 @@ def build_parser():
         help='For additional help: "synapsemonitor <COMMAND> -h"'
     )
     parser_monitor = subparsers.add_parser(
-        'monitor',
-        help='Monitor a Synapse Project'
+        'view',
+        help='Monitor entities tracked in a Synapse Fileview.'
     )
     parser_monitor.add_argument(
-        'projectid', metavar='projectid', type=str,
-        help='Synapse ID of project to be monitored.'
+        'view_id', metavar='id', type=str,
+        help='Synapse ID of fileview to be monitored.'
     )
     parser_monitor.add_argument(
-        '--userid',
-        help='User Id of individual to send report, defaults to current user.'
+        '--users', nargs='+',
+        help='User Id or username of individuals to send report. '
+             'If not specified will defaults to logged in Synapse user.'
+    )
+    parser_monitor.add_argument(
+        '--output',
+        help='Output modified entities into this csv file.'
     )
     parser_monitor.add_argument(
         '--email_subject',
         default='New Synapse Files',
-        help='Sets the subject heading of the email sent out '
-             '(defaults to New Synapse Files)'
+        help='Sets the subject heading of the email sent out. '
+             '(default: %(default)s)'
     )
     parser_monitor.add_argument(
-        '--days', '-d', metavar='days', type=float, default=None,
-        help='Find modifications in the last days'
+        '--days', '-d', metavar='days', type=int, default=1,
+        help='Find modifications to entities in the last N days. '
+             '(default: %(default)s)'
     )
-    parser_monitor.add_argument(
-        '--update_project', action='store_true',
-        help='If set will modify the annotations by setting '
-             'lastAuditTimeStamp to the current time on each project.')
     parser_monitor.set_defaults(func=monitor_cli)
 
     parser_update = subparsers.add_parser(
@@ -93,10 +118,33 @@ def build_parser():
     )
     parser_update.set_defaults(func=update_activity_feed_cli)
 
+    parser_create_view = subparsers.add_parser(
+        'create-file-view',
+        help='Creates a file view that will list all the File entities under '
+             'the specified scopes (Synapse Folders or Projects). This will '
+             'allow you to query for the files contained in your specified '
+             'scopes. This will NOT track the other entities currently: '
+             'PROJECT, TABLE, FOLDER, VIEW, DOCKER.'
+    )
+    parser_create_view.add_argument(
+        'name', metavar='NAME', type=str,
+        help='File View name'
+    )
+    parser_create_view.add_argument(
+        'project_id',
+        help='Synapse Project Id to store file view in'
+    )
+    parser_create_view.add_argument(
+        '--scope_ids', nargs='+', required=True,
+        help='Synapse Folder / Project Ids'
+    )
+    parser_create_view.set_defaults(func=create_file_view_cli)
+
     return parser
 
 
 def synapse_login(synapse_config=None):
+    """Synapse login helper"""
     if synapse_config is not None:
         syn = synapseclient.Synapse(skip_checks=True,
                                     configPath=synapse_config)
@@ -107,6 +155,7 @@ def synapse_login(synapse_config=None):
 
 
 def main():
+    """Invoke"""
     args = build_parser().parse_args()
     syn = synapse_login(synapse_config=args.synapse_config)
     args.func(syn, args)
