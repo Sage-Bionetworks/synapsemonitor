@@ -35,7 +35,7 @@ def create_file_view(syn: Synapse, name: str, project_id: str,
 def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
                      tz_name='US/Pacific') -> pd.DataFrame:
     """Renders file view values such as changing modifiedOn from
-    Epoch time to string or userids to usernames
+    Epoch time to US/Pacific datetime and Synapse userids to usernames
 
     Args:
         syn: Synapse connection
