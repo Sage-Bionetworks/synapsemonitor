@@ -24,8 +24,8 @@ class TestModifiedEntities:
         self.query_resultsdf = pd.DataFrame(query_results)
         self.expecteddf = pd.DataFrame({
             "id": ["syn23333"], "name": ["test"],
-            'currentVersion': [2], 'modifiedOn': ["Jan/12/1970 13:46"],
-            'createdOn': ["Jan/12/1970 13:46"],
+            'currentVersion': [2], 'modifiedOn': ["1970-01-12 05:46:40-08:00"],
+            'createdOn': ["1970-01-12 05:46:40-08:00"],
             'modifiedBy': ["user"], 'type': "file",
             'projectId': 'syn55555'
         })

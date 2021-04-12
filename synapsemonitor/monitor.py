@@ -48,14 +48,16 @@ def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
 
     """
     viewdf['createdOn'] = (
-        pd.to_datetime(viewdf['createdOn'],  unit='ms')
+        pd.to_datetime(viewdf['createdOn'], unit='ms')
         .dt.tz_localize('utc')
         .dt.tz_convert(tz_name)
+        .astype(str)  # Change col to string for tests
     )
     viewdf['modifiedOn'] = (
         pd.to_datetime(viewdf['modifiedOn'], unit='ms')
         .dt.tz_localize('utc')
         .dt.tz_convert(tz_name)
+        .astype(str)
     )
     users = [syn.getUserProfile(user)['userName']
              for user in viewdf['modifiedBy']]
