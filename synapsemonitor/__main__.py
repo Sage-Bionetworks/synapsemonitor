@@ -3,6 +3,10 @@
 import argparse
 
 import synapseclient
+from synapseclient.core.exceptions import (
+    SynapseAuthenticationError,
+    SynapseNoCredentialsError,
+)
 
 from . import monitor
 
@@ -108,14 +112,29 @@ def build_parser():
     return parser
 
 
-def synapse_login(synapse_config=None):
-    """Synapse login helper"""
-    if synapse_config is not None:
+def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
+    """Login to Synapse
+
+    Args:
+        synapse_config: Path to synapse configuration file.
+                        Defaults to ~/.synapseConfig
+
+    Returns:
+        Synapse connection
+    """
+    try:
         syn = synapseclient.Synapse(skip_checks=True,
                                     configPath=synapse_config)
-    else:
-        syn = synapseclient.Synapse(skip_checks=True)
-    syn.login(silent=True)
+        syn.login(silent=True)
+    except (SynapseNoCredentialsError, SynapseAuthenticationError):
+        raise ValueError(
+            "Login error: please make sure you have correctly "
+            "configured your client.  Instructions here: "
+            "https://help.synapse.org/docs/Client-Configuration.1985446156.html. "
+            "You can also create a Synapse Personal Access Token and set it "
+            "as an environmental variable: "
+            "SYNAPSE_AUTH_TOKEN='<my_personal_access_token>'"
+        )
     return syn
 
 
