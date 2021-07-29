@@ -48,6 +48,7 @@ def build_parser():
     )
     parser.add_argument(
         '-c', '--synapse_config', metavar='file', type=str,
+        default=synapseclient.client.CONFIG_FILE,
         help='Synapse config file with user credentials '
              '(overrides default ~/.synapseConfig)'
     )
