@@ -13,7 +13,7 @@ with open("README.md", "r") as fh:
 
 setup(name='synapsemonitor',
       # version=about["__version__"],
-      version="0.0.1",
+      version="0.0.2",
       description='Synapse monitoring',
       url='https://github.com/Sage-Bionetworks/synapseMonitor',
       author='Larsson Omberg, Thomas Yu',
