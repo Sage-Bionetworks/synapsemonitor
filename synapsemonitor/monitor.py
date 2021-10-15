@@ -1,4 +1,6 @@
 """Monitor Synapse Project"""
+import base64
+import json
 import typing
 
 import pandas as pd
@@ -115,6 +117,24 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
+def _get_email_message(view_id, days):
+    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
+             f"createdOn, projectId, type from {view_id} where "
+             f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
+    query_info = {"sql": query, "additionalFilters": [],
+                  "includeEntityEtag": True, "offset": 0,
+                  "limit": 25, "sort": []}
+    encoded_query = base64.b64encode(json.dumps(query_info).encode()).decode()
+
+    url = f"https://www.synapse.org/#!Synapse:{view_id}/tables/query/{encoded_query}"
+    email = (
+        'Hello,<br><br>'
+        f'Here are the <a href="{url}">files</a> that have been updated in the last {days} days!<br><br>'
+        'Synapse Admin'
+    )
+    return email
+
+
 def monitoring(syn: Synapse, view_id: str, users: list = None,
                email_subject: str = "New Synapse Files",
                days: int = 1) -> pd.DataFrame:
@@ -154,10 +174,9 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     user_ids = _get_user_ids(syn, users)
 
     # TODO: Add function to beautify email message
-
+    email = _get_email_message(view_id, days)
     # Prepare and send Message
     if not filesdf.empty:
         syn.sendMessage(user_ids, email_subject,
-                        filesdf.to_html(index=False),
-                        contentType='text/html')
+                        email, contentType='text/html')
     return filesdf
