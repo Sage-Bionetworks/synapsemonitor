@@ -23,6 +23,6 @@ setup(name='synapsemonitor',
       license='Apache',
       packages=find_packages(),
       zip_safe=False,
-      python_requires='>=3.6, <3.9',
+      python_requires='>=3.7, <3.9',
       entry_points={'console_scripts': ['synapsemonitor = synapsemonitor.__main__:main']},
       install_requires=['synapseclient', 'pandas'])
