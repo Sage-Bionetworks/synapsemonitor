@@ -122,7 +122,15 @@ def _get_user_ids(syn: Synapse, users: list = None):
 
 
 def _get_email_message(view_id: str, days: int) -> str:
-    """Get email message by building the query into the url"""
+    """Get email message by building the query into the url
+
+    Args:
+        view_id: Synapse ID of fileview
+        days: Find modifications in the last N days (default: 1)
+
+    Return:
+        Email string
+    """
     query = (
         "select id, name, currentVersion, modifiedOn, modifiedBy, "
         f"createdOn, projectId, type from {view_id} where "
