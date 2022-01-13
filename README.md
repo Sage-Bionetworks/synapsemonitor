@@ -58,33 +58,26 @@ optional arguments:
 
 ### Creating activity feeds
 
-The command updateActivityFeed.py can be used to create a weekly or monthly activity feeds.  For example to create an activity log of changes in the progenitor cell biology consortium project (syn1773109 ) and storing the output the wiki with id 69074 you would run:
+The command updateActivityFeed.py can be used to create a weekly or monthly activity feeds.  For example to create an activity log of changes in the progenitor cell biology consortium project (syn1773109) and storing the output the wiki with id 69074 you would run:
+
 
 ```
-updateActivityFeed.py -i week syn1773109 -w 69074
-```
+synapsemonitor update_activity -h
 
-
-Usage:
-
-```
-usage: updateActivityFeed.py [-h] [--wiki wikiId] [-i interval]
-                             [--earliest date] [--config file]
-                             project
-
-Looks for changes to project in defined time ranges and updates a wiki
+usage: synapsemonitor update_activity [-h] [--wiki WIKI] [-i {week,month}]
+                                      [--earliest date]
+                                      projectid
 
 positional arguments:
-  project               Synapse ID of projects to be monitored.
+  projectid             Synapse ID of project to be monitored.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --wiki wikiId, -w wikiId
-                        Optional sub-wiki id where to store change-log
+  --wiki WIKI, -w WIKI  Optional sub-wiki id where to store change-log
                         (defaults to project wiki)
-  -i interval, --interval interval
+  -i {week,month}, --interval {week,month}
                         divide changesets into either "week" or "month" long
-                        intervals (default week)
+                        intervals (defaults to week)
   --earliest date, -e date
                         The start date for which changes will be searched
                         (defaults to 1-January-2014)

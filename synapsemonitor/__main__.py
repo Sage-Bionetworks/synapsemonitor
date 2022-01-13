@@ -8,7 +8,7 @@ from synapseclient.core.exceptions import (
     SynapseNoCredentialsError,
 )
 
-from . import monitor
+from . import monitor, update_activity_feed
 
 
 def monitor_cli(syn, args):
@@ -36,6 +36,24 @@ def create_file_view_cli(syn, args):
         "you can run the command line function:"
     )
     print(f"$ synapsemonitor view {fileview.id} --days 4")
+
+
+def create_view_changelog_cli(syn, args):
+    """Update activity cli"""
+    markdown = update_activity_feed.create_view_changelog(
+        syn=syn, view_id=args.view_id,
+        delta_time=args.interval,
+        earliest_time=args.earliest_time,
+    )
+    if args.project_id is not None:
+        update_activity_feed.update_wiki(
+            syn=syn, project_id=args.project_id, markdown=markdown,
+            wiki_id=args.wiki_id
+        )
+    if args.markdown_path is not None:
+        with open(args.markdown_path, "w") as markdown_f:
+            markdown_f.write(markdown)
+
 
 
 def build_parser():
@@ -94,6 +112,44 @@ def build_parser():
         "(default: %(default)s)",
     )
     parser_monitor.set_defaults(func=monitor_cli)
+
+    parser_update = subparsers.add_parser(
+        'create-view-changelog',
+        help='Looks for changes to a fileview in defined time ranges and '
+             'has the option of writing to a Synapse wiki page and writing '
+             'to a markdown file.'
+    )
+    parser_update.add_argument(
+        'view_id', help='Synapse ID of fileview.'
+    )
+    parser_update.add_argument(
+        '--project_id', '-p', type=str,
+        help='If specified, will store changelog to '
+             'homepage of Synapse project'
+    )
+    parser_update.add_argument(
+        '--wiki_id', '-w', type=str,
+        help='Optional sub-wiki id where to store change-log '
+             '(defaults to project wiki)'
+    )
+    parser_update.add_argument(
+        '--markdown_path', type=str,
+        help='If specified, will write changelog to a markdown file'
+    )
+
+    parser_update.add_argument(
+        '-i', '--interval',
+        choices=['week', 'month'], default='week',
+        help='divide changesets into either "week" or "month" long intervals '
+             '(default: %(default)s)'
+    )
+    parser_update.add_argument(
+        '--earliest', '-e', metavar='date', dest='earliest_time',
+        type=str, default='1-Jan-2014',
+        help='The start date for which changes will be searched '
+             '(default: %(default)s)'
+    )
+    parser_update.set_defaults(func=create_view_changelog_cli)
 
     parser_create_view = subparsers.add_parser(
         "create-file-view",
