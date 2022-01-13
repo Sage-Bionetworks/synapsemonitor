@@ -41,13 +41,11 @@ def create_file_view_cli(syn, args):
 def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
-        description="Checks for new/modified entities in a Fileview."
-        "A Synapse Fileview can be created to allow users to "
-        "track entities in a Project or Folder.  For more "
-        "information, head to "
-        "https://docs.synapse.org/articles/views.html. "
-        "You can use the `create-file-view` function provided "
-        "in this package to create a File View."
+        description="Checks for new/modified entities in a Fileview. A Synapse "
+        "Fileview can be created to allow users to track entities in a Project "
+        "or Folder.  For more information, head to "
+        "https://docs.synapse.org/articles/views.html. You can use the "
+        "`create-file-view` function provided in this package to create a File View."
     )
     parser.add_argument(
         "-c",
@@ -55,8 +53,7 @@ def build_parser():
         metavar="file",
         type=str,
         default=synapseclient.client.CONFIG_FILE,
-        help="Synapse config file with user credentials "
-        "(overrides default ~/.synapseConfig)",
+        help="Synapse config file with user credentials: (default %(default)s)",
     )
 
     subparsers = parser.add_subparsers(
@@ -85,8 +82,7 @@ def build_parser():
     parser_monitor.add_argument(
         "--email_subject",
         default="New Synapse Files",
-        help="Sets the subject heading of the email sent out. "
-        "(default: %(default)s)",
+        help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
     parser_monitor.add_argument(
         "--days",
