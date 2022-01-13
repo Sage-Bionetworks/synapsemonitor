@@ -8,8 +8,9 @@ import synapseclient
 from synapseclient import EntityViewSchema, EntityViewType, Synapse
 
 
-def create_file_view(syn: Synapse, name: str, project_id: str,
-                     scope_ids: typing.List[str]) -> EntityViewSchema:
+def create_file_view(
+    syn: Synapse, name: str, project_id: str, scope_ids: typing.List[str]
+) -> EntityViewSchema:
     """Creates a file view that will list all the File entities under
     the specified scopes (Synapse Folders or Projects). This will
     allow you to query for the files contained in your specified scopes.
@@ -25,17 +26,20 @@ def create_file_view(syn: Synapse, name: str, project_id: str,
     Returns:
         Synapse file view
     """
-    view = EntityViewSchema(name=name,
-                            parent=project_id,
-                            scopes=scope_ids,
-                            includeEntityTypes=[EntityViewType.FILE],
-                            add_default_columns=True,
-                            addAnnotationColumns=False)
+    view = EntityViewSchema(
+        name=name,
+        parent=project_id,
+        scopes=scope_ids,
+        includeEntityTypes=[EntityViewType.FILE],
+        add_default_columns=True,
+        addAnnotationColumns=False,
+    )
     return syn.store(view)
 
 
-def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
-                     tz_name='US/Pacific') -> pd.DataFrame:
+def _render_fileview(
+    syn: Synapse, viewdf: pd.DataFrame, tz_name="US/Pacific"
+) -> pd.DataFrame:
     """Renders file view values such as changing modifiedOn from
     Epoch time to US/Pacific datetime and Synapse userids to usernames
 
@@ -49,24 +53,22 @@ def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
         Rendered File view dataframe
 
     """
-    viewdf['createdOn'] = (
-        pd.to_datetime(viewdf['createdOn'], unit='ms')
-        .dt.tz_localize('utc')
+    viewdf["createdOn"] = (
+        pd.to_datetime(viewdf["createdOn"], unit="ms")
+        .dt.tz_localize("utc")
         .dt.tz_convert(tz_name)
     )
-    viewdf['modifiedOn'] = (
-        pd.to_datetime(viewdf['modifiedOn'], unit='ms')
-        .dt.tz_localize('utc')
+    viewdf["modifiedOn"] = (
+        pd.to_datetime(viewdf["modifiedOn"], unit="ms")
+        .dt.tz_localize("utc")
         .dt.tz_convert(tz_name)
     )
-    users = [syn.getUserProfile(user)['userName']
-             for user in viewdf['modifiedBy']]
-    viewdf['modifiedBy'] = users
+    users = [syn.getUserProfile(user)["userName"] for user in viewdf["modifiedBy"]]
+    viewdf["modifiedBy"] = users
     return viewdf
 
 
-def find_modified_entities(syn: Synapse, view_id: str,
-                           days: int = 1) -> pd.DataFrame:
+def find_modified_entities(syn: Synapse, view_id: str, days: int = 1) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
     These modified entities include newly uploaded ones
 
@@ -78,9 +80,11 @@ def find_modified_entities(syn: Synapse, view_id: str,
     Returns:
         Dataframe with updated entities
     """
-    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
-             f"createdOn, projectId, type from {view_id} where "
-             f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
+    query = (
+        "select id, name, currentVersion, modifiedOn, modifiedBy, "
+        f"createdOn, projectId, type from {view_id} where "
+        f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
+    )
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     return _render_fileview(syn, viewdf=resultsdf)
@@ -111,33 +115,45 @@ def _get_user_ids(syn: Synapse, users: list = None):
         List of Synapse user Ids.
     """
     if users is None:
-        user_ids = [syn.getUserProfile()['ownerId']]
+        user_ids = [syn.getUserProfile()["ownerId"]]
     else:
-        user_ids = [syn.getUserProfile(user)['ownerId'] for user in users]
+        user_ids = [syn.getUserProfile(user)["ownerId"] for user in users]
     return user_ids
 
 
-def _get_email_message(view_id, days):
-    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
-             f"createdOn, projectId, type from {view_id} where "
-             f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
-    query_info = {"sql": query, "additionalFilters": [],
-                  "includeEntityEtag": True, "offset": 0,
-                  "limit": 25, "sort": []}
+def _get_email_message(view_id: str, days: int) -> str:
+    """Get email message by building the query into the url"""
+    query = (
+        "select id, name, currentVersion, modifiedOn, modifiedBy, "
+        f"createdOn, projectId, type from {view_id} where "
+        f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
+    )
+    query_info = {
+        "sql": query,
+        "additionalFilters": [],
+        "includeEntityEtag": True,
+        "offset": 0,
+        "limit": 25,
+        "sort": [],
+    }
     encoded_query = base64.b64encode(json.dumps(query_info).encode()).decode()
 
     url = f"https://www.synapse.org/#!Synapse:{view_id}/tables/query/{encoded_query}"
     email = (
-        'Hello,<br><br>'
+        "Hello,<br><br>"
         f'Here are the <a href="{url}">files</a> that have been updated in the last {days} days!<br><br>'
-        'Synapse Admin'
+        "Synapse Admin"
     )
     return email
 
 
-def monitoring(syn: Synapse, view_id: str, users: list = None,
-               email_subject: str = "New Synapse Files",
-               days: int = 1) -> pd.DataFrame:
+def monitoring(
+    syn: Synapse,
+    view_id: str,
+    users: list = None,
+    email_subject: str = "New Synapse Files",
+    days: int = 1,
+) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
     Args:
@@ -168,7 +184,7 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     # get dataframe of files
     filesdf = find_modified_entities(syn, view_id, days=days)
     # Filter out projects and folders
-    print(f'Total number of entities = {len(filesdf.index)}')
+    print(f"Total number of entities = {len(filesdf.index)}")
 
     # get user ids
     user_ids = _get_user_ids(syn, users)
@@ -177,6 +193,5 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     email = _get_email_message(view_id, days)
     # Prepare and send Message
     if not filesdf.empty:
-        syn.sendMessage(user_ids, email_subject,
-                        email, contentType='text/html')
+        syn.sendMessage(user_ids, email_subject, email, contentType="text/html")
     return filesdf

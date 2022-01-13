@@ -1,0 +1,11 @@
+[tool.black]
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+extend-exclude = '''
+(
+    test
+    |team_request_notifier.py
+    |update_activity_feed
+)
+'''
