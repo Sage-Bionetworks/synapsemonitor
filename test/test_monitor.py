@@ -109,12 +109,15 @@ class TestMonitoring:
                           return_value=returndf) as patch_find,\
              patch.object(monitor, "_get_user_ids",
                           return_value=[111]) as patch_get_user,\
+             patch.object(monitor, "_get_email_message",
+                          return_value="email message here") as patch_email,\
              patch.object(self.syn, "sendMessage") as patch_send:
             monitor.monitoring(self.syn, "syn12345", users=["2222", "fooo"],
                                email_subject="new subject", days=15)
             patch_get.assert_called_once_with("syn12345")
             patch_find.assert_called_once_with(self.syn, "syn12345", days=15)
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
+            patch_email.assert_called_once_with("syn12345", 15)
             patch_send.assert_called_once_with([111], "new subject",
-                                               returndf.to_html(index=False),
+                                               "email message here",
                                                contentType='text/html')
