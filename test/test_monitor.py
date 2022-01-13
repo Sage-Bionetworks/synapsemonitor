@@ -58,14 +58,15 @@ class TestModifiedEntities:
                                                       days=2)
             patch_q.assert_called_once_with(
                 "select id, name, currentVersion, modifiedOn, modifiedBy, "
-                f"createdOn, projectId, type from syn44444 where "
-                f"modifiedOn > unix_timestamp(NOW() - INTERVAL 2 DAY)*1000"
+                "createdOn, projectId, type from syn44444 where "
+                "modifiedOn > unix_timestamp(NOW() - INTERVAL 2 DAY)*1000"
             )
             patch_asdf.assert_called_once_with()
             assert resultdf.equals(self.expecteddf)
             patch_render.assert_called_once_with(
                 self.syn, viewdf=self.query_resultsdf
             )
+
 
 def test__get_user_ids_none():
     """Test getting logged in user profile when no users specified"""
@@ -97,7 +98,7 @@ class TestMonitoring:
         entity = Project(id="syn12345")
         with pytest.raises(ValueError,
                            match="syn12345 must be a Synapse File View"),\
-            patch.object(self.syn, "get", return_value=entity):
+             patch.object(self.syn, "get", return_value=entity):
             monitor.monitoring(self.syn, "syn12345")
 
     def test_monitoring_fail_integration(self):
