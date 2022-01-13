@@ -87,6 +87,13 @@ def test__get_user_ids():
         assert user_ids == ["111", "111"]
 
 
+def test__get_email_message():
+    """Test getting email message"""
+    expected_email = 'Hello,<br><br>Here are the <a href="https://www.synapse.org/#!Synapse:syn2222/tables/query/eyJzcWwiOiAic2VsZWN0IGlkLCBuYW1lLCBjdXJyZW50VmVyc2lvbiwgbW9kaWZpZWRPbiwgbW9kaWZpZWRCeSwgY3JlYXRlZE9uLCBwcm9qZWN0SWQsIHR5cGUgZnJvbSBzeW4yMjIyIHdoZXJlIG1vZGlmaWVkT24gPiB1bml4X3RpbWVzdGFtcChOT1coKSAtIElOVEVSVkFMIDE1IERBWSkqMTAwMCIsICJhZGRpdGlvbmFsRmlsdGVycyI6IFtdLCAiaW5jbHVkZUVudGl0eUV0YWciOiB0cnVlLCAib2Zmc2V0IjogMCwgImxpbWl0IjogMjUsICJzb3J0IjogW119">files</a> that have been updated in the last 15 days!<br><br>Synapse Admin'
+    email = monitor._get_email_message("syn2222", 15)
+    assert expected_email == email
+
+
 class TestMonitoring:
     """Test monitoring function, includes integration test"""
     def setup_method(self):
