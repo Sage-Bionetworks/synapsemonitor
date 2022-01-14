@@ -213,7 +213,8 @@ def monitoring(
     # get user ids
     user_ids = _get_user_ids(syn, users)
 
-    # Add logic to get email messages based on the entity type
+    # TODO: Add logic to get email messages based on the entity type
+    # TODO: Add support for keeping the non transformed dataframe
     email = _get_email_message(syn_id, days)
     # Prepare and send Message
     if not filesdf.empty:
