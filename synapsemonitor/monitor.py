@@ -66,7 +66,9 @@ def _render_fileview(
     return viewdf
 
 
-def find_modified_entities_fileview(syn: Synapse, view_id: str, days: int = 1) -> pd.DataFrame:
+def find_modified_entities_fileview(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
     These modified entities include newly uploaded ones
 
@@ -82,7 +84,7 @@ def find_modified_entities_fileview(syn: Synapse, view_id: str, days: int = 1) -
     # _force_update_view(syn, view_id)
     query = (
         "select id, name, currentVersion, modifiedOn, modifiedBy, "
-        f"createdOn, projectId, type from {view_id} where "
+        f"createdOn, projectId, type from {syn_id} where "
         f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
     )
     results = syn.tableQuery(query)
@@ -90,11 +92,11 @@ def find_modified_entities_fileview(syn: Synapse, view_id: str, days: int = 1) -
     return _render_fileview(syn, viewdf=resultsdf)
 
 
-def find_modified_entities_file(syn: Synapse, view_id: str, days: int = 1):
+def find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1):
     raise NotImplementedError
 
 
-def find_modified_entities_container(syn: Synapse, view_id: str, days: int = 1):
+def find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1):
     raise NotImplementedError
 
 
@@ -134,10 +136,10 @@ def determine_monitoring_strategy(syn, syn_id: str):
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
         return find_modified_entities_fileview
-    elif isinstance(entity, synapseclient.File):
-        return find_modified_entities_file
-    elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
-        return find_modified_entities_container
+    # elif isinstance(entity, synapseclient.File):
+    #     return find_modified_entities_file
+    # elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
+    #     return find_modified_entities_container
     else:
         raise NotImplementedError(f"{type(entity)} not supported")
 
