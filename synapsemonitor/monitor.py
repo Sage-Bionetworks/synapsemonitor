@@ -1,4 +1,6 @@
 """Monitor Synapse Project"""
+import base64
+import json
 import typing
 
 import pandas as pd
@@ -74,7 +76,7 @@ def _find_modified_entities_fileview(
 
     Args:
         syn: Synapse connection
-        view_id: Synapse View Id
+        syn_id: Synapse View Id
         epochtime: Epoch time in milliseconds
 
     Returns:
@@ -135,6 +137,40 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
+def _get_email_message(syn_id: str, days: int) -> str:
+    """Get email message by building the query into the url
+
+    Args:
+        syn_id: Synapse ID of entity
+        days: Find modifications in the last N days (default: 1)
+
+    Return:
+        Email string
+    """
+    query = (
+        "select id, name, currentVersion, modifiedOn, modifiedBy, "
+        f"createdOn, projectId, type from {syn_id} where "
+        f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
+    )
+    query_info = {
+        "sql": query,
+        "additionalFilters": [],
+        "includeEntityEtag": True,
+        "offset": 0,
+        "limit": 25,
+        "sort": [],
+    }
+    encoded_query = base64.b64encode(json.dumps(query_info).encode()).decode()
+
+    url = f"https://www.synapse.org/#!Synapse:{syn_id}/tables/query/{encoded_query}"
+    email = (
+        "Hello,<br><br>"
+        f'Here are the <a href="{url}">files</a> that have been updated in the last {days} days!<br><br>'
+        "Synapse Admin"
+    )
+    return email
+
+
 def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> pd.DataFrame:
     """Find modified entities based on the type of the input"""
     entity = syn.get(syn_id, downloadFile=False)
@@ -177,14 +213,10 @@ def monitoring(
     # get user ids
     user_ids = _get_user_ids(syn, users)
 
-    # TODO: Add function to beautify email message
-
+    # TODO: Add logic to get email messages based on the entity type
+    # TODO: Add support for keeping the non transformed dataframe
+    email = _get_email_message(syn_id, days)
     # Prepare and send Message
     if not filesdf.empty:
-        syn.sendMessage(
-            user_ids,
-            email_subject,
-            filesdf.to_html(index=False),
-            contentType="text/html",
-        )
+        syn.sendMessage(user_ids, email_subject, email, contentType="text/html")
     return filesdf

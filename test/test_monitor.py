@@ -90,6 +90,13 @@ def test__get_user_ids():
         assert user_ids == ["111", "111"]
 
 
+def test__get_email_message():
+    """Test getting email message"""
+    expected_email = 'Hello,<br><br>Here are the <a href="https://www.synapse.org/#!Synapse:syn2222/tables/query/eyJzcWwiOiAic2VsZWN0IGlkLCBuYW1lLCBjdXJyZW50VmVyc2lvbiwgbW9kaWZpZWRPbiwgbW9kaWZpZWRCeSwgY3JlYXRlZE9uLCBwcm9qZWN0SWQsIHR5cGUgZnJvbSBzeW4yMjIyIHdoZXJlIG1vZGlmaWVkT24gPiB1bml4X3RpbWVzdGFtcChOT1coKSAtIElOVEVSVkFMIDE1IERBWSkqMTAwMCIsICJhZGRpdGlvbmFsRmlsdGVycyI6IFtdLCAiaW5jbHVkZUVudGl0eUV0YWciOiB0cnVlLCAib2Zmc2V0IjogMCwgImxpbWl0IjogMjUsICJzb3J0IjogW119">files</a> that have been updated in the last 15 days!<br><br>Synapse Admin'
+    email = monitor._get_email_message("syn2222", 15)
+    assert expected_email == email
+
+
 @pytest.mark.parametrize(
     "entity",
     [
@@ -153,11 +160,14 @@ class TestMonitoring:
                           return_value=returndf) as patch_find,\
              patch.object(monitor, "_get_user_ids",
                           return_value=[111]) as patch_get_user,\
+             patch.object(monitor, "_get_email_message",
+                          return_value="email message here") as patch_email,\
              patch.object(self.syn, "sendMessage") as patch_send:
             monitor.monitoring(self.syn, "syn12345", users=["2222", "fooo"],
                                email_subject="new subject", days=15)
             patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
+            patch_email.assert_called_once_with("syn12345", 15)
             patch_send.assert_called_once_with([111], "new subject",
-                                               returndf.to_html(index=False),
+                                               "email message here",
                                                contentType='text/html')
