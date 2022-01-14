@@ -136,7 +136,7 @@ def _get_user_ids(syn: Synapse, users: list = None):
 
 
 def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> pd.DataFrame:
-    """Determine how to get modified entities based on the type of the input"""
+    """Find modified entities based on the type of the input"""
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
         return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
