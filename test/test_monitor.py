@@ -7,6 +7,7 @@ import pytest
 from synapseclient import EntityViewSchema, Project
 
 from synapsemonitor import monitor
+import synapsemonitor
 
 
 class TestModifiedEntities:
@@ -87,6 +88,18 @@ def test__get_user_ids():
         user_ids = monitor._get_user_ids(syn, [1, "username"])
         patch_get.has_calls([mock.call(1), mock.call("username")])
         assert user_ids == ["111", "111"]
+
+
+def test_determine_monitor_strategy_valid():
+    """Test supported entity types to monitor"""
+    entity = EntityViewSchema(id="syn12345", parentId="syn3333")
+    syn = Mock()
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        monitor_func = monitor.determine_monitoring_strategy(
+            syn=syn, syn_id="syn12345"
+        )
+        patch_get.assert_called_once_with("syn12345", downloadFile=False)
+        assert monitor_func == monitor.find_modified_entities_fileview
 
 
 class TestMonitoring:
