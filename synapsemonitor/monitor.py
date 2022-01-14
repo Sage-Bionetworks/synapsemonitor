@@ -131,7 +131,9 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def determine_monitoring_strategy(syn, syn_id: str):
+def determine_monitoring_strategy(
+    syn: Synapse, syn_id: str
+) -> find_modified_entities_fileview | find_modified_entities_file | find_modified_entities_container:
     """Determine how to get modified entities based on the type of the input"""
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
