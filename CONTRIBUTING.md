@@ -19,12 +19,12 @@ git checkout develop
 git pull upstream develop
 ```
 
-<!-- ### Install development dependencies
+### Install development dependencies
 This will install all the dependencies of the package including the active branch of `synapsemonitor`.
 
 ```
-pip install -r requirements-dev.txt
-``` -->
+pipenv install --dev
+```
 
 
 ### The development life cycle
@@ -34,6 +34,7 @@ pip install -r requirements-dev.txt
 1. Pull the latest content from the `develop` branch of this central repository (not your fork).
 1. Create a feature branch which off the `develop` branch. If there is a GitHub issue that you are addressing, name the branch after the issue with some more detail (like `issue-123-add-some-new-feature`).
 1. After completing work and testing locally (see below), push to your fork.
+1. Make sure to run `black` the python code formatter: `black ./`
 1. In Github, create a pull request from the feature branch of your fork to the `develop` branch of the central repository.
 
 > *A code maintainer must review and accept your pull request.* A code review (which happens with both the contributor and the reviewer present) is required for contributing. This can be performed remotely (e.g., Zoom, Hangout, or other video or phone conference).
