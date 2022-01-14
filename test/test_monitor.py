@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
-from synapseclient import EntityViewSchema, Project, Folder, File
+from synapseclient import EntityViewSchema, Project, Folder, File, Entity
 
 from synapsemonitor import monitor
 import synapsemonitor
@@ -91,17 +91,34 @@ def test__get_user_ids():
 
 
 @pytest.mark.parametrize(
+    "entity",
+    [
+        Project(id="syn12345", parentId="syn3333"),
+        Folder(id="syn12345", parentId="syn3333"),
+        File(id="syn12345", parentId="syn3333")
+    ]
+)
+def test_find_modified_entities_not_implemented(entity):
+    """Test not implemented entity types"""
+    syn = Mock()
+    with pytest.raises(NotImplementedError, match=".not supported yet"),\
+         patch.object(syn, "get", return_value=entity):
+        monitor.find_modified_entities(
+            syn=syn, syn_id="syn12345", days=1
+        )
+
+
+@pytest.mark.parametrize(
     "entity, entity_type",
     [
-        (Project(id="syn12345", parentId="syn3333"), "Project"),
-        (Folder(id="syn12345", parentId="syn3333"), "Folder"),
-        (File(id="syn12345", parentId="syn3333"), "File")
+        (Entity(id="syn12345", parentId="syn3333"), "Entity")
     ]
 )
 def test_find_modified_entities_unsupported(entity, entity_type):
-    """Test unsupported entity types to monitor"""
+    """Test unsupported entity types"""
     syn = Mock()
-    with pytest.raises(NotImplementedError, match=".not supported yet"),\
+    with pytest.raises(ValueError,
+                       match=f".+synapseclient.entity.{entity_type}'> not supported"),\
          patch.object(syn, "get", return_value=entity):
         monitor.find_modified_entities(
             syn=syn, syn_id="syn12345", days=1
