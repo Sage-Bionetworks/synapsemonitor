@@ -4,6 +4,10 @@
 We welcome all contributions!  Please head to [issues](https://github.com/Sage-Bionetworks/synapsemonitor/issues) to either file any bugs/feature requests or find a task you want to assist with.  Make sure to assign yourself the task if you decide to work on it.
 
 
+## Coding Style
+We use `flake8` and the settings are described in [setup.cfg](setup.cfg).  The code in this package is also automatically formatted by `black` except for the tests.
+
+
 ### Fork and clone this repository
 
 See the [Github docs](https://help.github.com/articles/fork-a-repo/) for how to make a copy (a fork) of a repository to your own Github account.
