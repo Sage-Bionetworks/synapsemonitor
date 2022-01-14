@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
-from synapseclient import EntityViewSchema, Project
+from synapseclient import EntityViewSchema, Project, Folder, File
 
 from synapsemonitor import monitor
 import synapsemonitor
@@ -47,7 +47,7 @@ class TestModifiedEntities:
             patch_get.assert_called_once_with(333333)
             assert rendereddf.equals(self.expecteddf)
 
-    def test_find_modified_entities_fileview(self):
+    def test__find_modified_entities_fileview(self):
         """Patch finding modified entities"""
         with patch.object(self.syn, "tableQuery",
                           return_value=self.table_query_results) as patch_q,\
@@ -55,7 +55,7 @@ class TestModifiedEntities:
                          return_value=self.query_resultsdf) as patch_asdf,\
             patch.object(monitor, "_render_fileview",
                          return_value=self.expecteddf) as patch_render:
-            resultdf = monitor.find_modified_entities_fileview(
+            resultdf = monitor._find_modified_entities_fileview(
                 self.syn, "syn44444", days=2
             )
             patch_q.assert_called_once_with(
@@ -90,16 +90,38 @@ def test__get_user_ids():
         assert user_ids == ["111", "111"]
 
 
-def test_determine_monitor_strategy_valid():
+@pytest.mark.parametrize(
+    "entity, entity_type",
+    [
+        (Project(id="syn12345", parentId="syn3333"), "Project"),
+        (Folder(id="syn12345", parentId="syn3333"), "Folder"),
+        (File(id="syn12345", parentId="syn3333"), "File")
+    ]
+)
+def test_find_modified_entities(entity, entity_type):
+    """Test unsupported entity types to monitor"""
+    syn = Mock()
+    with pytest.raises(NotImplementedError, match=".not supported yet"),\
+         patch.object(syn, "get", return_value=entity):
+        monitor.find_modified_entities(
+            syn=syn, syn_id="syn12345", days=1
+        )
+
+
+def test_find_modified_entities():
     """Test supported entity types to monitor"""
     entity = EntityViewSchema(id="syn12345", parentId="syn3333")
     syn = Mock()
-    with patch.object(syn, "get", return_value=entity) as patch_get:
-        monitor_func = monitor.determine_monitoring_strategy(
-            syn=syn, syn_id="syn12345"
+    empty = pd.DataFrame()
+    with patch.object(syn, "get", return_value=entity) as patch_get,\
+         patch.object(monitor, "_find_modified_entities_fileview",
+                      return_value=empty) as patch_mod:
+        value = monitor.find_modified_entities(
+            syn=syn, syn_id="syn12345", days=1
         )
         patch_get.assert_called_once_with("syn12345", downloadFile=False)
-        assert monitor_func == monitor.find_modified_entities_fileview
+        patch_mod.assert_called_once()
+        assert empty.equals(value)
 
 
 class TestMonitoring:
@@ -107,27 +129,17 @@ class TestMonitoring:
     def setup_method(self):
         self.syn = Mock()
 
-    def test_monitoring_fail_entity(self):
-        """Test only FileView entities are accepted"""
-        entity = Project(id="syn12345")
-        with pytest.raises(NotImplementedError,
-                           match=".+'synapseclient.entity.Project'> not supported"),\
-             patch.object(self.syn, "get", return_value=entity):
-            monitor.monitoring(self.syn, "syn12345")
-
     def test_monitoring_fail_integration(self):
         """Test all monitoring functions are called"""
-        entity = EntityViewSchema(id="syn12345", parentId="syn3333")
         returndf = pd.DataFrame({"test": ["foo"]})
-        with patch.object(self.syn, "get", return_value=entity) as patch_get,\
-             patch.object(monitor, "find_modified_entities_fileview",
+        with patch.object(monitor, "find_modified_entities",
                           return_value=returndf) as patch_find,\
              patch.object(monitor, "_get_user_ids",
                           return_value=[111]) as patch_get_user,\
              patch.object(self.syn, "sendMessage") as patch_send:
             monitor.monitoring(self.syn, "syn12345", users=["2222", "fooo"],
                                email_subject="new subject", days=15)
-            patch_get.assert_called_once_with("syn12345", downloadFile=False)
+            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
             patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
             patch_send.assert_called_once_with([111], "new subject",
