@@ -98,7 +98,7 @@ def test__get_user_ids():
         (File(id="syn12345", parentId="syn3333"), "File")
     ]
 )
-def test_find_modified_entities(entity, entity_type):
+def test_find_modified_entities_unsupported(entity, entity_type):
     """Test unsupported entity types to monitor"""
     syn = Mock()
     with pytest.raises(NotImplementedError, match=".not supported yet"),\
@@ -108,7 +108,7 @@ def test_find_modified_entities(entity, entity_type):
         )
 
 
-def test_find_modified_entities():
+def test_find_modified_entities_supported():
     """Test supported entity types to monitor"""
     entity = EntityViewSchema(id="syn12345", parentId="syn3333")
     syn = Mock()
