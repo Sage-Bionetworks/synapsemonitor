@@ -6,8 +6,9 @@ import synapseclient
 from synapseclient import EntityViewSchema, EntityViewType, Synapse
 
 
-def create_file_view(syn: Synapse, name: str, project_id: str,
-                     scope_ids: typing.List[str]) -> EntityViewSchema:
+def create_file_view(
+    syn: Synapse, name: str, project_id: str, scope_ids: typing.List[str]
+) -> EntityViewSchema:
     """Creates a file view that will list all the File entities under
     the specified scopes (Synapse Folders or Projects). This will
     allow you to query for the files contained in your specified scopes.
@@ -23,17 +24,20 @@ def create_file_view(syn: Synapse, name: str, project_id: str,
     Returns:
         Synapse file view
     """
-    view = EntityViewSchema(name=name,
-                            parent=project_id,
-                            scopes=scope_ids,
-                            includeEntityTypes=[EntityViewType.FILE],
-                            add_default_columns=True,
-                            addAnnotationColumns=False)
+    view = EntityViewSchema(
+        name=name,
+        parent=project_id,
+        scopes=scope_ids,
+        includeEntityTypes=[EntityViewType.FILE],
+        add_default_columns=True,
+        addAnnotationColumns=False,
+    )
     return syn.store(view)
 
 
-def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
-                     tz_name='US/Pacific') -> pd.DataFrame:
+def _render_fileview(
+    syn: Synapse, viewdf: pd.DataFrame, tz_name="US/Pacific"
+) -> pd.DataFrame:
     """Renders file view values such as changing modifiedOn from
     Epoch time to US/Pacific datetime and Synapse userids to usernames
 
@@ -47,24 +51,24 @@ def _render_fileview(syn: Synapse, viewdf: pd.DataFrame,
         Rendered File view dataframe
 
     """
-    viewdf['createdOn'] = (
-        pd.to_datetime(viewdf['createdOn'], unit='ms')
-        .dt.tz_localize('utc')
+    viewdf["createdOn"] = (
+        pd.to_datetime(viewdf["createdOn"], unit="ms")
+        .dt.tz_localize("utc")
         .dt.tz_convert(tz_name)
     )
-    viewdf['modifiedOn'] = (
-        pd.to_datetime(viewdf['modifiedOn'], unit='ms')
-        .dt.tz_localize('utc')
+    viewdf["modifiedOn"] = (
+        pd.to_datetime(viewdf["modifiedOn"], unit="ms")
+        .dt.tz_localize("utc")
         .dt.tz_convert(tz_name)
     )
-    users = [syn.getUserProfile(user)['userName']
-             for user in viewdf['modifiedBy']]
-    viewdf['modifiedBy'] = users
+    users = [syn.getUserProfile(user)["userName"] for user in viewdf["modifiedBy"]]
+    viewdf["modifiedBy"] = users
     return viewdf
 
 
-def find_modified_entities(syn: Synapse, view_id: str,
-                           days: int = 1) -> pd.DataFrame:
+def _find_modified_entities_fileview(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
     These modified entities include newly uploaded ones
 
@@ -76,12 +80,28 @@ def find_modified_entities(syn: Synapse, view_id: str,
     Returns:
         Dataframe with updated entities
     """
-    query = ("select id, name, currentVersion, modifiedOn, modifiedBy, "
-             f"createdOn, projectId, type from {view_id} where "
-             f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000")
+    # Update the view
+    # _force_update_view(syn, view_id)
+    query = (
+        "select id, name, currentVersion, modifiedOn, modifiedBy, "
+        f"createdOn, projectId, type from {syn_id} where "
+        f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
+    )
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     return _render_fileview(syn, viewdf=resultsdf)
+
+
+def _find_modified_entities_file(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
+    raise NotImplementedError("Files not supported yet")
+
+
+def _find_modified_entities_container(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
+    raise NotImplementedError("Projects and folders not supported yet")
 
 
 def _force_update_view(syn: Synapse, view_id: str):
@@ -109,15 +129,32 @@ def _get_user_ids(syn: Synapse, users: list = None):
         List of Synapse user Ids.
     """
     if users is None:
-        user_ids = [syn.getUserProfile()['ownerId']]
+        user_ids = [syn.getUserProfile()["ownerId"]]
     else:
-        user_ids = [syn.getUserProfile(user)['ownerId'] for user in users]
+        user_ids = [syn.getUserProfile(user)["ownerId"] for user in users]
     return user_ids
 
 
-def monitoring(syn: Synapse, view_id: str, users: list = None,
-               email_subject: str = "New Synapse Files",
-               days: int = 1) -> pd.DataFrame:
+def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> pd.DataFrame:
+    """Find modified entities based on the type of the input"""
+    entity = syn.get(syn_id, downloadFile=False)
+    if isinstance(entity, synapseclient.EntityViewSchema):
+        return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, synapseclient.File):
+        return _find_modified_entities_file(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
+        return _find_modified_entities_container(syn=syn, syn_id=syn_id, days=days)
+    else:
+        raise ValueError(f"{type(entity)} not supported")
+
+
+def monitoring(
+    syn: Synapse,
+    syn_id: str,
+    users: list = None,
+    email_subject: str = "New Synapse Files",
+    days: int = 1,
+) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
     Args:
@@ -132,23 +169,10 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
     Returns:
         Dataframe with files modified within last N days
     """
-
-    entity = syn.get(view_id)
-    # Code review decision to only allow file views so that
-    # Users can decide where they want to store their own fileview
-    # and can choose the scope of the fileview. (Scope meaning)
-    # the entities they want to have tracked.
-    if not isinstance(entity, synapseclient.EntityViewSchema):
-        raise ValueError(
-            f"{view_id} must be a Synapse File View. Please "
-            "review 'create_file_view' function to create a Synapse File View"
-        )
-    # Update the view
-    # _force_update_view(syn, view_id)
     # get dataframe of files
-    filesdf = find_modified_entities(syn, view_id, days=days)
+    filesdf = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
     # Filter out projects and folders
-    print(f'Total number of entities = {len(filesdf.index)}')
+    print(f"Total number of entities = {len(filesdf.index)}")
 
     # get user ids
     user_ids = _get_user_ids(syn, users)
@@ -157,7 +181,10 @@ def monitoring(syn: Synapse, view_id: str, users: list = None,
 
     # Prepare and send Message
     if not filesdf.empty:
-        syn.sendMessage(user_ids, email_subject,
-                        filesdf.to_html(index=False),
-                        contentType='text/html')
+        syn.sendMessage(
+            user_ids,
+            email_subject,
+            filesdf.to_html(index=False),
+            contentType="text/html",
+        )
     return filesdf
