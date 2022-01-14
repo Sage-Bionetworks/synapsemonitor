@@ -140,7 +140,6 @@ class TestMonitoring:
             monitor.monitoring(self.syn, "syn12345", users=["2222", "fooo"],
                                email_subject="new subject", days=15)
             patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
-            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
             patch_send.assert_called_once_with([111], "new subject",
                                                returndf.to_html(index=False),
