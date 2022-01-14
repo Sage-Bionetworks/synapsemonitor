@@ -66,7 +66,7 @@ def _render_fileview(
     return viewdf
 
 
-def find_modified_entities(syn: Synapse, view_id: str, days: int = 1) -> pd.DataFrame:
+def find_modified_entities_fileview(syn: Synapse, view_id: str, days: int = 1) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
     These modified entities include newly uploaded ones
 
@@ -78,6 +78,8 @@ def find_modified_entities(syn: Synapse, view_id: str, days: int = 1) -> pd.Data
     Returns:
         Dataframe with updated entities
     """
+    # Update the view
+    # _force_update_view(syn, view_id)
     query = (
         "select id, name, currentVersion, modifiedOn, modifiedBy, "
         f"createdOn, projectId, type from {view_id} where "
@@ -86,6 +88,14 @@ def find_modified_entities(syn: Synapse, view_id: str, days: int = 1) -> pd.Data
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     return _render_fileview(syn, viewdf=resultsdf)
+
+
+def find_modified_entities_file(syn: Synapse, view_id: str, days: int = 1):
+    raise NotImplementedError
+
+
+def find_modified_entities_container(syn: Synapse, view_id: str, days: int = 1):
+    raise NotImplementedError
 
 
 def _force_update_view(syn: Synapse, view_id: str):
@@ -119,9 +129,22 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
+def determine_monitoring_strategy(syn, syn_id: str):
+    """Determine how to get modified entities based on the type of the input"""
+    entity = syn.get(syn_id, downloadFile=False)
+    if isinstance(entity, synapseclient.EntityViewSchema):
+        return find_modified_entities_fileview
+    elif isinstance(entity, synapseclient.File):
+        return find_modified_entities_file
+    elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
+        return find_modified_entities_container
+    else:
+        raise NotImplementedError(f"{type(entity)} not supported")
+
+
 def monitoring(
     syn: Synapse,
-    view_id: str,
+    syn_id: str,
     users: list = None,
     email_subject: str = "New Synapse Files",
     days: int = 1,
@@ -140,21 +163,11 @@ def monitoring(
     Returns:
         Dataframe with files modified within last N days
     """
+    # Determine way to get updated entities
+    find_modified_entities = determine_monitoring_strategy(syn=syn, syn_id=syn_id)
 
-    entity = syn.get(view_id)
-    # Code review decision to only allow file views so that
-    # Users can decide where they want to store their own fileview
-    # and can choose the scope of the fileview. (Scope meaning)
-    # the entities they want to have tracked.
-    if not isinstance(entity, synapseclient.EntityViewSchema):
-        raise ValueError(
-            f"{view_id} must be a Synapse File View. Please "
-            "review 'create_file_view' function to create a Synapse File View"
-        )
-    # Update the view
-    # _force_update_view(syn, view_id)
     # get dataframe of files
-    filesdf = find_modified_entities(syn, view_id, days=days)
+    filesdf = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
     # Filter out projects and folders
     print(f"Total number of entities = {len(filesdf.index)}")
 
