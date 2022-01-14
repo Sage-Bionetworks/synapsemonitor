@@ -4,9 +4,10 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
-from synapseclient import EntityViewSchema, Project
+from synapseclient import EntityViewSchema, Project, Folder, File, Entity
 
 from synapsemonitor import monitor
+import synapsemonitor
 
 
 class TestModifiedEntities:
@@ -46,7 +47,7 @@ class TestModifiedEntities:
             patch_get.assert_called_once_with(333333)
             assert rendereddf.equals(self.expecteddf)
 
-    def test_find_modified_entities(self):
+    def test__find_modified_entities_fileview(self):
         """Patch finding modified entities"""
         with patch.object(self.syn, "tableQuery",
                           return_value=self.table_query_results) as patch_q,\
@@ -54,8 +55,9 @@ class TestModifiedEntities:
                          return_value=self.query_resultsdf) as patch_asdf,\
             patch.object(monitor, "_render_fileview",
                          return_value=self.expecteddf) as patch_render:
-            resultdf = monitor.find_modified_entities(self.syn, "syn44444",
-                                                      days=2)
+            resultdf = monitor._find_modified_entities_fileview(
+                self.syn, "syn44444", days=2
+            )
             patch_q.assert_called_once_with(
                 "select id, name, currentVersion, modifiedOn, modifiedBy, "
                 "createdOn, projectId, type from syn44444 where "
@@ -95,25 +97,66 @@ def test__get_email_message():
     assert expected_email == email
 
 
+@pytest.mark.parametrize(
+    "entity",
+    [
+        Project(id="syn12345", parentId="syn3333"),
+        Folder(id="syn12345", parentId="syn3333"),
+        File(id="syn12345", parentId="syn3333")
+    ]
+)
+def test_find_modified_entities_not_implemented(entity):
+    """Test not implemented entity types"""
+    syn = Mock()
+    with pytest.raises(NotImplementedError, match=".not supported yet"),\
+         patch.object(syn, "get", return_value=entity):
+        monitor.find_modified_entities(
+            syn=syn, syn_id="syn12345", days=1
+        )
+
+
+@pytest.mark.parametrize(
+    "entity, entity_type",
+    [
+        (Entity(id="syn12345", parentId="syn3333"), "Entity")
+    ]
+)
+def test_find_modified_entities_unsupported(entity, entity_type):
+    """Test unsupported entity types"""
+    syn = Mock()
+    with pytest.raises(ValueError,
+                       match=f".+synapseclient.entity.{entity_type}'> not supported"),\
+         patch.object(syn, "get", return_value=entity):
+        monitor.find_modified_entities(
+            syn=syn, syn_id="syn12345", days=1
+        )
+
+
+def test_find_modified_entities_supported():
+    """Test supported entity types to monitor"""
+    entity = EntityViewSchema(id="syn12345", parentId="syn3333")
+    syn = Mock()
+    empty = pd.DataFrame()
+    with patch.object(syn, "get", return_value=entity) as patch_get,\
+         patch.object(monitor, "_find_modified_entities_fileview",
+                      return_value=empty) as patch_mod:
+        value = monitor.find_modified_entities(
+            syn=syn, syn_id="syn12345", days=1
+        )
+        patch_get.assert_called_once_with("syn12345", downloadFile=False)
+        patch_mod.assert_called_once()
+        assert empty.equals(value)
+
+
 class TestMonitoring:
     """Test monitoring function, includes integration test"""
     def setup_method(self):
         self.syn = Mock()
 
-    def test_monitoring_fail_entity(self):
-        """Test only FileView entities are accepted"""
-        entity = Project(id="syn12345")
-        with pytest.raises(ValueError,
-                           match="syn12345 must be a Synapse File View"),\
-             patch.object(self.syn, "get", return_value=entity):
-            monitor.monitoring(self.syn, "syn12345")
-
     def test_monitoring_fail_integration(self):
         """Test all monitoring functions are called"""
-        entity = EntityViewSchema(id="syn12345", parentId="syn3333")
         returndf = pd.DataFrame({"test": ["foo"]})
-        with patch.object(self.syn, "get", return_value=entity) as patch_get,\
-             patch.object(monitor, "find_modified_entities",
+        with patch.object(monitor, "find_modified_entities",
                           return_value=returndf) as patch_find,\
              patch.object(monitor, "_get_user_ids",
                           return_value=[111]) as patch_get_user,\
@@ -122,8 +165,7 @@ class TestMonitoring:
              patch.object(self.syn, "sendMessage") as patch_send:
             monitor.monitoring(self.syn, "syn12345", users=["2222", "fooo"],
                                email_subject="new subject", days=15)
-            patch_get.assert_called_once_with("syn12345")
-            patch_find.assert_called_once_with(self.syn, "syn12345", days=15)
+            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
             patch_email.assert_called_once_with("syn12345", 15)
             patch_send.assert_called_once_with([111], "new subject",

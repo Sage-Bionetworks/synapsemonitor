@@ -68,26 +68,42 @@ def _render_fileview(
     return viewdf
 
 
-def find_modified_entities(syn: Synapse, view_id: str, days: int = 1) -> pd.DataFrame:
+def _find_modified_entities_fileview(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
     """Performs query to find modified entities in id and render columns
     These modified entities include newly uploaded ones
 
     Args:
         syn: Synapse connection
-        view_id: Synapse View Id
+        syn_id: Synapse View Id
         epochtime: Epoch time in milliseconds
 
     Returns:
         Dataframe with updated entities
     """
+    # Update the view
+    # _force_update_view(syn, view_id)
     query = (
         "select id, name, currentVersion, modifiedOn, modifiedBy, "
-        f"createdOn, projectId, type from {view_id} where "
+        f"createdOn, projectId, type from {syn_id} where "
         f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
     )
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     return _render_fileview(syn, viewdf=resultsdf)
+
+
+def _find_modified_entities_file(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
+    raise NotImplementedError("Files not supported yet")
+
+
+def _find_modified_entities_container(
+    syn: Synapse, syn_id: str, days: int = 1
+) -> pd.DataFrame:
+    raise NotImplementedError("Projects and folders not supported yet")
 
 
 def _force_update_view(syn: Synapse, view_id: str):
@@ -121,11 +137,11 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def _get_email_message(view_id: str, days: int) -> str:
+def _get_email_message(syn_id: str, days: int) -> str:
     """Get email message by building the query into the url
 
     Args:
-        view_id: Synapse ID of fileview
+        syn_id: Synapse ID of entity
         days: Find modifications in the last N days (default: 1)
 
     Return:
@@ -133,7 +149,7 @@ def _get_email_message(view_id: str, days: int) -> str:
     """
     query = (
         "select id, name, currentVersion, modifiedOn, modifiedBy, "
-        f"createdOn, projectId, type from {view_id} where "
+        f"createdOn, projectId, type from {syn_id} where "
         f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
     )
     query_info = {
@@ -146,7 +162,7 @@ def _get_email_message(view_id: str, days: int) -> str:
     }
     encoded_query = base64.b64encode(json.dumps(query_info).encode()).decode()
 
-    url = f"https://www.synapse.org/#!Synapse:{view_id}/tables/query/{encoded_query}"
+    url = f"https://www.synapse.org/#!Synapse:{syn_id}/tables/query/{encoded_query}"
     email = (
         "Hello,<br><br>"
         f'Here are the <a href="{url}">files</a> that have been updated in the last {days} days!<br><br>'
@@ -155,9 +171,22 @@ def _get_email_message(view_id: str, days: int) -> str:
     return email
 
 
+def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> pd.DataFrame:
+    """Find modified entities based on the type of the input"""
+    entity = syn.get(syn_id, downloadFile=False)
+    if isinstance(entity, synapseclient.EntityViewSchema):
+        return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, synapseclient.File):
+        return _find_modified_entities_file(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
+        return _find_modified_entities_container(syn=syn, syn_id=syn_id, days=days)
+    else:
+        raise ValueError(f"{type(entity)} not supported")
+
+
 def monitoring(
     syn: Synapse,
-    view_id: str,
+    syn_id: str,
     users: list = None,
     email_subject: str = "New Synapse Files",
     days: int = 1,
@@ -176,29 +205,16 @@ def monitoring(
     Returns:
         Dataframe with files modified within last N days
     """
-
-    entity = syn.get(view_id)
-    # Code review decision to only allow file views so that
-    # Users can decide where they want to store their own fileview
-    # and can choose the scope of the fileview. (Scope meaning)
-    # the entities they want to have tracked.
-    if not isinstance(entity, synapseclient.EntityViewSchema):
-        raise ValueError(
-            f"{view_id} must be a Synapse File View. Please "
-            "review 'create_file_view' function to create a Synapse File View"
-        )
-    # Update the view
-    # _force_update_view(syn, view_id)
     # get dataframe of files
-    filesdf = find_modified_entities(syn, view_id, days=days)
+    filesdf = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
     # Filter out projects and folders
     print(f"Total number of entities = {len(filesdf.index)}")
 
     # get user ids
     user_ids = _get_user_ids(syn, users)
 
-    # TODO: Add function to beautify email message
-    email = _get_email_message(view_id, days)
+    # Add logic to get email messages based on the entity type
+    email = _get_email_message(syn_id, days)
     # Prepare and send Message
     if not filesdf.empty:
         syn.sendMessage(user_ids, email_subject, email, contentType="text/html")
