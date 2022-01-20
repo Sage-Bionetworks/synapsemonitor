@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-
+"""
+# TODO: This is an old script that needs to be rewritten and maybe added to the
+functionality
+"""
 import synapseclient
 import argparse
 import os
