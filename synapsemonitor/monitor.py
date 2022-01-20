@@ -66,9 +66,7 @@ def _render_fileview(
     return viewdf
 
 
-def _find_modified_entities_fileview(
-    syn: Synapse, syn_id: str, days: int = 1
-) -> list:
+def _find_modified_entities_fileview(syn: Synapse, syn_id: str, days: int = 1) -> list:
     """Finds entities scoped in a fileview modified in the past N number of days
 
     Args:
@@ -87,12 +85,10 @@ def _find_modified_entities_fileview(
     )
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
-    return resultsdf['id'].tolist()
+    return resultsdf["id"].tolist()
 
 
-def _find_modified_entities_file(
-    syn: Synapse, syn_id: str, days: int = 1
-) -> list:
+def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> list:
     """Determines if entity was modified in the past N number of days
 
     Args:
@@ -106,9 +102,7 @@ def _find_modified_entities_file(
     raise NotImplementedError("Files not supported yet")
 
 
-def _find_modified_entities_container(
-    syn: Synapse, syn_id: str, days: int = 1
-) -> list:
+def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) -> list:
     """Finds entities in a folder or project modified in the past N number of days
 
     Args:
