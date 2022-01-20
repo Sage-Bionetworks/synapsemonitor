@@ -24,7 +24,7 @@ git pull upstream develop
 ```
 
 ### Install development dependencies
-This will install all the dependencies of the package including the active branch of `synapsemonitor`.
+This will install all the dependencies of the package including the active branch of `synapsemonitor`.  Make sure you are using some form of python version management like [pyenv](https://github.com/pyenv/pyenv)
 
 ```
 pipenv install --dev
