@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+synapseclient = ">= 2.5.1"
+pandas = ">= 1.0"
+synapsemonitor = {path = "."}
+
+[dev-packages]
+pytest = "*"
+black = "*"
+flake8 = "*"
