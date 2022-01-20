@@ -19,6 +19,7 @@ def monitor_cli(syn, args):
         users=args.users,
         email_subject=args.email_subject,
         days=args.days,
+        verbose=args.verbose,
     )
     if args.output:
         filesdf.to_csv(args.output, index=False)
@@ -92,6 +93,13 @@ def build_parser():
         default=1,
         help="Find modifications to entities in the last N days. "
         "(default: %(default)s)",
+    )
+    parser_monitor.add_argument(
+        "--verbose",
+        "-v",
+        dest="verbose",
+        action='store_true',
+        help="Print messages on script progress",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
