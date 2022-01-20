@@ -98,7 +98,7 @@ def build_parser():
         "--verbose",
         "-v",
         dest="verbose",
-        action='store_true',
+        action="store_true",
         help="Print messages on script progress",
     )
     parser_monitor.set_defaults(func=monitor_cli)
