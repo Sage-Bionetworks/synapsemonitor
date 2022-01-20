@@ -8,6 +8,8 @@ Provides tools for monitoring and keeping track of File entity changes in Synaps
 pip install synapsemonitor
 ```
 
+## Usage
+
 ### Monitor Fileview and send email notifications
 
 Monitors a project or entities provided in the scope of a File View for changes and sends an email through the Synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.  Please see [Create File View](#create-file-view) if you do not have a File View.
@@ -91,3 +93,15 @@ optional arguments:
   --config file         Synapse config file with user credentials (overides
                         default ~/.synapseConfig)
 ``` -->
+
+### Docker
+There is a Docker repository that is automatically build: `sagebionetworks/synapsemonitor`.  See the available tags [here](https://hub.docker.com/r/sagebionetworks/synapsemonitor).  It is always recommended to use a tag other than `latest` because the `latest` tag can change.  This package requires authentication to Synapse and we highly recommend using a Synapse PAT.  For more information on the [PAT](https://help.synapse.org/docs/Managing-Your-Account.2055405596.html#ManagingYourAccount-PersonalAccessTokens).
+
+```
+docker run -e SYNAPSE_AUTH_TOKEN={your_auth_token_here} sagebionetworks/synapsemonitor:v0.0.2 -h
+```
+
+### Cronjobs
+Often times you will want to run this code periodically to continuously track changes.  One way you can do this is to set up a cronjob. Follow this [beginners guide](https://ostechnix.com/a-beginners-guide-to-cron-jobs/).  Note: you will most likely want to create an ec2 to run your cronjob instead of your laptop.
+
+There are also other technologies that support scheduled execution of code such as AWS lambdas, AWS batch, Kubernetes and etc.  The above is a way of setting a cronjob on your laptop or ec2.
