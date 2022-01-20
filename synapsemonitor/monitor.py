@@ -207,7 +207,7 @@ def monitoring(
     # TODO: Add function to beautify email message
 
     # Prepare and send Message
-    if not modified_entities:
+    if modified_entities:
         syn.sendMessage(
             user_ids,
             email_subject,
