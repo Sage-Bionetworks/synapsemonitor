@@ -68,39 +68,57 @@ def _render_fileview(
 
 def _find_modified_entities_fileview(
     syn: Synapse, syn_id: str, days: int = 1
-) -> pd.DataFrame:
-    """Performs query to find modified entities in id and render columns
-    These modified entities include newly uploaded ones
+) -> list:
+    """Finds entities scoped in a fileview modified in the past N number of days
 
     Args:
         syn: Synapse connection
-        view_id: Synapse View Id
-        epochtime: Epoch time in milliseconds
+        syn_id: Synapse Fileview Id
+        days: N number of days
 
     Returns:
-        Dataframe with updated entities
+        List of synapse ids
     """
     # Update the view
     # _force_update_view(syn, view_id)
     query = (
-        "select id, name, currentVersion, modifiedOn, modifiedBy, "
-        f"createdOn, projectId, type from {syn_id} where "
+        f"select id from {syn_id} where "
         f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
     )
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
-    return _render_fileview(syn, viewdf=resultsdf)
+    return resultsdf['id'].tolist()
 
 
 def _find_modified_entities_file(
     syn: Synapse, syn_id: str, days: int = 1
-) -> pd.DataFrame:
+) -> list:
+    """Determines if entity was modified in the past N number of days
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse File Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    """
     raise NotImplementedError("Files not supported yet")
 
 
 def _find_modified_entities_container(
     syn: Synapse, syn_id: str, days: int = 1
-) -> pd.DataFrame:
+) -> list:
+    """Finds entities in a folder or project modified in the past N number of days
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Folder or Project Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    """
     raise NotImplementedError("Projects and folders not supported yet")
 
 
@@ -135,8 +153,17 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> pd.DataFrame:
-    """Find modified entities based on the type of the input"""
+def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> list:
+    """Find modified entities based on the type of the input
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Entity Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    """
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
         return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
@@ -170,9 +197,9 @@ def monitoring(
         Dataframe with files modified within last N days
     """
     # get dataframe of files
-    filesdf = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
+    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
     # Filter out projects and folders
-    print(f"Total number of entities = {len(filesdf.index)}")
+    print(f"Total number of entities = {len(modified_entities)}")
 
     # get user ids
     user_ids = _get_user_ids(syn, users)
@@ -180,11 +207,11 @@ def monitoring(
     # TODO: Add function to beautify email message
 
     # Prepare and send Message
-    if not filesdf.empty:
+    if not modified_entities:
         syn.sendMessage(
             user_ids,
             email_subject,
-            filesdf.to_html(index=False),
+            ", ".join(modified_entities),
             contentType="text/html",
         )
-    return filesdf
+    return modified_entities
