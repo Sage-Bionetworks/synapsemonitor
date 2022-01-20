@@ -52,22 +52,21 @@ class TestModifiedEntities:
         with patch.object(self.syn, "tableQuery",
                           return_value=self.table_query_results) as patch_q,\
             patch.object(self.table_query_results, "asDataFrame",
-                         return_value=self.query_resultsdf) as patch_asdf,\
-            patch.object(monitor, "_render_fileview",
-                         return_value=self.expecteddf) as patch_render:
-            resultdf = monitor._find_modified_entities_fileview(
+                         return_value=self.query_resultsdf) as patch_asdf:
+            # patch.object(monitor, "_render_fileview",
+            #              return_value=self.expecteddf) as patch_render:
+            modified_list = monitor._find_modified_entities_fileview(
                 self.syn, "syn44444", days=2
             )
             patch_q.assert_called_once_with(
-                "select id, name, currentVersion, modifiedOn, modifiedBy, "
-                "createdOn, projectId, type from syn44444 where "
+                "select id from syn44444 where "
                 "modifiedOn > unix_timestamp(NOW() - INTERVAL 2 DAY)*1000"
             )
             patch_asdf.assert_called_once_with()
-            assert resultdf.equals(self.expecteddf)
-            patch_render.assert_called_once_with(
-                self.syn, viewdf=self.query_resultsdf
-            )
+            assert modified_list == ["syn23333"]
+            # patch_render.assert_called_once_with(
+            #     self.syn, viewdf=self.query_resultsdf
+            # )
 
 
 def test__get_user_ids_none():
@@ -148,9 +147,9 @@ class TestMonitoring:
 
     def test_monitoring_fail_integration(self):
         """Test all monitoring functions are called"""
-        returndf = pd.DataFrame({"test": ["foo"]})
+        modified_list = ["syn2222", "syn33333"]
         with patch.object(monitor, "find_modified_entities",
-                          return_value=returndf) as patch_find,\
+                          return_value=modified_list) as patch_find,\
              patch.object(monitor, "_get_user_ids",
                           return_value=[111]) as patch_get_user,\
              patch.object(self.syn, "sendMessage") as patch_send:
@@ -159,5 +158,5 @@ class TestMonitoring:
             patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
             patch_send.assert_called_once_with([111], "new subject",
-                                               returndf.to_html(index=False),
+                                               "syn2222, syn33333",
                                                contentType='text/html')
