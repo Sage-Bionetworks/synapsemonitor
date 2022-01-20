@@ -3,10 +3,9 @@
 
 We welcome all contributions!  Please head to [issues](https://github.com/Sage-Bionetworks/synapsemonitor/issues) to either file any bugs/feature requests or find a task you want to assist with.  Make sure to assign yourself the task if you decide to work on it.
 
-
 ## Coding Style
-We use `flake8` and the settings are described in [setup.cfg](setup.cfg).  The code in this package is also automatically formatted by `black` except for the tests.
 
+This package uses `flake8` - it's settings are described in [setup.cfg](setup.cfg).  The code in this package is also automatically formatted by `black` for consistency except for the code in the test directory.
 
 ## The Development Life Cycle
 
@@ -23,7 +22,19 @@ We use `flake8` and the settings are described in [setup.cfg](setup.cfg).  The c
     ```
 
 ### Install development dependencies
-This will install all the dependencies of the package including the active branch of `synapsemonitor`.  Make sure you are using some form of python version management like [pyenv](https://github.com/pyenv/pyenv)
+This will install all the dependencies of the package including the active branch of `synapsemonitor`.  We highly recommend that you leverage some form of python version management like [pyenv](https://github.com/pyenv/pyenv) or [anaconda](https://www.anaconda.com/products/individual). There are two ways you can install the dependencies for this package.
+
+#### pip
+This is the more traditional way of installing dependencies. Follow instructions [here](https://pip.pypa.io/en/stable/installation/) to learn how to install pip.
+
+```
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
+#### pipenv
+`pipenv` is a Python package manager.  Learn more about [pipenv](https://pipenv.pypa.io/en/latest/) and how to install it.
 
 ```
 pipenv install --dev
