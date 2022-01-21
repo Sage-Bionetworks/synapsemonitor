@@ -6,7 +6,6 @@ from . import monitor
 
 
 class SynapseAction(ABC):
-
     def __init__(self, syn: Synapse, syn_id: str, days: int = 1) -> None:
         self.syn = syn
         self.syn_id = syn_id
