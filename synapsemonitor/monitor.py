@@ -175,6 +175,7 @@ def monitoring(
     users: list = None,
     email_subject: str = "New Synapse Files",
     days: int = 1,
+    verbose: bool = False,
 ) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
@@ -193,7 +194,8 @@ def monitoring(
     # get dataframe of files
     modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
     # Filter out projects and folders
-    print(f"Total number of entities = {len(modified_entities)}")
+    if verbose:
+        print(f"Total number of entities = {len(modified_entities)}")
 
     # get user ids
     user_ids = _get_user_ids(syn, users)
