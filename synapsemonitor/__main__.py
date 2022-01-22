@@ -2,24 +2,31 @@
 """Command line client"""
 import argparse
 
+import pandas as pd
 import synapseclient
 from synapseclient.core.exceptions import (
     SynapseAuthenticationError,
     SynapseNoCredentialsError,
 )
 
-from . import monitor
+from . import actions, monitor
 
 
 def monitor_cli(syn, args):
     """Monitor cli"""
-    filesdf = monitor.monitoring(
-        syn,
-        args.view_id,
-        users=args.users,
+    email_action = actions.EmailAction(
+        syn=syn,
+        syn_id=args.view_id,
         email_subject=args.email_subject,
+        users=args.users,
         days=args.days,
         verbose=args.verbose,
+    )
+    action_results = actions.synapse_action(
+        action_cls=email_action
+    )
+    filesdf = pd.DataFrame(
+        {"syn_id": action_results}
     )
     if args.output:
         filesdf.to_csv(args.output, index=False)
