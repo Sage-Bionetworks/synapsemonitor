@@ -8,7 +8,10 @@ from . import monitor
 
 class SynapseAction(ABC):
     """Base synapse action class"""
-    def __init__(self, syn: Synapse, syn_id: str, days: int = 1, verbose: bool = False) -> None:
+
+    def __init__(
+        self, syn: Synapse, syn_id: str, days: int = 1, verbose: bool = False
+    ) -> None:
         self.syn = syn
         self.syn_id = syn_id
         self.days = days
@@ -31,9 +34,16 @@ class SynapseAction(ABC):
 
 class EmailAction(SynapseAction):
     """This action emails specified users with modified entities"""
-    def __init__(self, syn: Synapse, syn_id: str, days: int = 1, verbose: bool = False,
-                 users: list = None,
-                 email_subject: str = "New Synapse Files"):
+
+    def __init__(
+        self,
+        syn: Synapse,
+        syn_id: str,
+        days: int = 1,
+        verbose: bool = False,
+        users: list = None,
+        email_subject: str = "New Synapse Files",
+    ):
         self.users = users
         self.email_subject = email_subject
         super().__init__(syn=syn, syn_id=syn_id, days=days, verbose=verbose)

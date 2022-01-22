@@ -22,12 +22,8 @@ def monitor_cli(syn, args):
         days=args.days,
         verbose=args.verbose,
     )
-    action_results = actions.synapse_action(
-        action_cls=email_action
-    )
-    filesdf = pd.DataFrame(
-        {"syn_id": action_results}
-    )
+    action_results = actions.synapse_action(action_cls=email_action)
+    filesdf = pd.DataFrame({"syn_id": action_results})
     if args.output:
         filesdf.to_csv(args.output, index=False)
     else:
