@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Command line client"""
 import argparse
+import logging
 
 import synapseclient
 from synapseclient.core.exceptions import (
@@ -19,7 +20,6 @@ def monitor_cli(syn, args):
         users=args.users,
         email_subject=args.email_subject,
         days=args.days,
-        verbose=args.verbose,
     )
     if args.output:
         filesdf.to_csv(args.output, index=False)
@@ -95,11 +95,13 @@ def build_parser():
         "(default: %(default)s)",
     )
     parser_monitor.add_argument(
-        "--verbose",
-        "-v",
-        dest="verbose",
-        action="store_true",
-        help="Print messages on script progress",
+        "--log",
+        "-l",
+        metavar="level",
+        type=str,
+        choices=["debug", "info", "warning", "error"],
+        default="error",
+        help="Set logging output level " "(default: %(default)s)",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
@@ -153,6 +155,12 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
 def main():
     """Invoke"""
     args = build_parser().parse_args()
+
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError("Invalid log level: %s" % args.log)
+    logging.basicConfig(level=numeric_level)
+
     syn = synapse_login(synapse_config=args.synapse_config)
     args.func(syn, args)
 
