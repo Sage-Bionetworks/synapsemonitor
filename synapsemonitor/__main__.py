@@ -23,9 +23,9 @@ def monitor_cli(syn, args):
         days=args.days,
     )
     if args.output:
-        pd.DataFrame(ids, columns=["synapse_id"]).to_csv(args.output, index=False)
+        pd.DataFrame(ids).to_csv(args.output, index=False, header=False)
     else:
-        logging.info(pd.DataFrame(ids, columns=["synapse_id"]).to_csv(index=False))
+        print(pd.DataFrame(ids).to_csv(index=False, header=False))
 
 
 def create_file_view_cli(syn, args):
