@@ -2,6 +2,7 @@
 """Command line client"""
 import argparse
 import logging
+import pandas as pd
 
 import synapseclient
 from synapseclient.core.exceptions import (
@@ -14,7 +15,7 @@ from . import monitor
 
 def monitor_cli(syn, args):
     """Monitor cli"""
-    filesdf = monitor.monitoring(
+    ids = monitor.monitoring(
         syn,
         args.view_id,
         users=args.users,
@@ -22,9 +23,9 @@ def monitor_cli(syn, args):
         days=args.days,
     )
     if args.output:
-        filesdf.to_csv(args.output, index=False)
+        pd.DataFrame(ids, columns=["synapse_id"]).to_csv(args.output, index=False)
     else:
-        print(filesdf.to_csv(index=False))
+        logging.info(pd.DataFrame(ids, columns=["synapse_id"]).to_csv(index=False))
 
 
 def create_file_view_cli(syn, args):
