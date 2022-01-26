@@ -3,6 +3,7 @@
 import argparse
 import logging
 import pandas as pd
+import sys
 
 import synapseclient
 from synapseclient.core.exceptions import (
@@ -25,7 +26,7 @@ def monitor_cli(syn, args):
     if args.output:
         pd.DataFrame(ids).to_csv(args.output, index=False, header=False)
     else:
-        print(pd.DataFrame(ids).to_csv(index=False, header=False))
+        sys.stdout.write(pd.DataFrame(ids).to_csv(index=False, header=False))
 
 
 def create_file_view_cli(syn, args):
