@@ -1,6 +1,8 @@
 """Monitor Synapse Project"""
 import typing
 import logging
+from datetime import datetime, timedelta
+from dateutil import tz
 
 import pandas as pd
 import synapseclient
@@ -100,7 +102,14 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> li
     Returns:
         List of synapse ids
     """
-    raise NotImplementedError("Files not supported yet")
+    entity = syn.get(syn_id, downloadFile=False)
+    utc_mod = datetime.strptime(entity["modifiedOn"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    local_mod = utc_mod.replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal())
+    local_now = datetime.now().replace(tzinfo=tz.tzlocal())
+
+    if local_mod > local_now - timedelta(days=days):
+        return [syn_id]
+    return []
 
 
 def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) -> list:

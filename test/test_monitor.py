@@ -93,8 +93,7 @@ def test__get_user_ids():
     "entity",
     [
         Project(id="syn12345", parentId="syn3333"),
-        Folder(id="syn12345", parentId="syn3333"),
-        File(id="syn12345", parentId="syn3333")
+        Folder(id="syn12345", parentId="syn3333")
     ]
 )
 def test_find_modified_entities_not_implemented(entity):
