@@ -18,7 +18,7 @@ def monitor_cli(syn, args):
     """Monitor cli"""
     ids = monitor.monitoring(
         syn,
-        args.view_id,
+        args.synapse_id,
         users=args.users,
         email_subject=args.email_subject,
         days=args.days,
@@ -65,25 +65,29 @@ def build_parser():
         help='For additional help: "synapsemonitor <COMMAND> -h"',
     )
     parser_monitor = subparsers.add_parser(
-        "view", help="Monitor entities tracked in a Synapse Fileview."
+        "monitor", help="Find new or modified entities."
     )
     parser_monitor.add_argument(
-        "view_id",
-        metavar="id",
+        "synapse_id",
+        metavar="synapse_id",
         type=str,
         help="Synapse ID of fileview to be monitored.",
     )
     parser_monitor.add_argument(
         "--users",
+        "-u",
         nargs="+",
         help="User Id or username of individuals to send report. "
         "If not specified will defaults to logged in Synapse user.",
     )
     parser_monitor.add_argument(
-        "--output", help="Output modified entities into this csv file."
+        "--output", 
+        "-o",
+        help="Output modified entities into this csv file. (default: None)"
     )
     parser_monitor.add_argument(
         "--email_subject",
+        "-e",
         default="New Synapse Files",
         help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
@@ -103,12 +107,12 @@ def build_parser():
         type=str,
         choices=["debug", "info", "warning", "error"],
         default="error",
-        help="Set logging output level " "(default: %(default)s)",
+        help="Set logging output level " "(default: %(default)s)"
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
     parser_create_view = subparsers.add_parser(
-        "create-file-view",
+        "create",
         help="Creates a file view that will list all the File entities under "
         "the specified scopes (Synapse Folders or Projects). This will "
         "allow you to query for the files contained in your specified "

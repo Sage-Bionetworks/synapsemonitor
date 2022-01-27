@@ -15,25 +15,22 @@ pip install synapsemonitor
 Monitors a project or entities provided in the scope of a File View for changes and sends an email through the Synapse messaging system to the user specified when changes have been made to the project. Includes a list of changed files.  Please see [Create File View](#create-file-view) if you do not have a File View.
 
 ```
-usage: synapsemonitor view [-h] [--user_ids USER_IDS [USER_IDS ...]]
-                           [--output OUTPUT] [--email_subject EMAIL_SUBJECT]
-                           [--days days]
-                           id
+usage: synapsemonitor monitor [-h] [--users USERS [USERS ...]] [--output OUTPUT] [--email_subject EMAIL_SUBJECT] [--days days] [--log level] synapse_id
 
 positional arguments:
-  id                    Synapse ID of fileview to be monitored.
+  synapse_id            Synapse ID of fileview to be monitored.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --user_ids USER_IDS [USER_IDS ...]
-                        User Id of individuals to send report. If not
-                        specified will defaults to logged in Synapse user.
-  --output OUTPUT       Output modified entities into this csv file.
-  --email_subject EMAIL_SUBJECT
-                        Sets the subject heading of the email sent
-                        out.(default: New Synapse Files)
-  --days days, -d days  Find modifications to entities in the last N
-                        days.(default: 1)
+  --users USERS [USERS ...], -u USERS [USERS ...]
+                        User Id or username of individuals to send report. If not specified will defaults to logged in Synapse user.
+  --output OUTPUT, -o OUTPUT
+                        Output modified entities into this csv file. (default: None)
+  --email_subject EMAIL_SUBJECT, -e EMAIL_SUBJECT
+                        Sets the subject heading of the email sent out. (default: New Synapse Files)
+  --days days, -d days  Find modifications to entities in the last N days. (default: 1)
+  --log level, -l level
+                        Set logging output level (default: error)
 ```
 
 ### Create File View
