@@ -81,9 +81,9 @@ def build_parser():
         "If not specified will defaults to logged in Synapse user.",
     )
     parser_monitor.add_argument(
-        "--output", 
+        "--output",
         "-o",
-        help="Output modified entities into this csv file. (default: None)"
+        help="Output modified entities into this csv file. (default: None)",
     )
     parser_monitor.add_argument(
         "--email_subject",
@@ -107,7 +107,7 @@ def build_parser():
         type=str,
         choices=["debug", "info", "warning", "error"],
         default="error",
-        help="Set logging output level " "(default: %(default)s)"
+        help="Set logging output level " "(default: %(default)s)",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
