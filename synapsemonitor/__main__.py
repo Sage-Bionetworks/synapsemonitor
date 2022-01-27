@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """Command line client"""
 import argparse
+import logging
+import pandas as pd
+import sys
 
 import pandas as pd
 import synapseclient
@@ -14,20 +17,20 @@ from . import actions, monitor
 
 def monitor_cli(syn, args):
     """Monitor cli"""
+
     email_action = actions.EmailAction(
         syn=syn,
         syn_id=args.view_id,
         email_subject=args.email_subject,
         users=args.users,
         days=args.days,
-        verbose=args.verbose,
     )
     action_results = actions.synapse_action(action_cls=email_action)
     filesdf = pd.DataFrame({"syn_id": action_results})
     if args.output:
-        filesdf.to_csv(args.output, index=False)
+        pd.DataFrame(ids).to_csv(args.output, index=False, header=False)
     else:
-        print(filesdf.to_csv(index=False))
+        sys.stdout.write(pd.DataFrame(ids).to_csv(index=False, header=False))
 
 
 def create_file_view_cli(syn, args):
@@ -66,25 +69,29 @@ def build_parser():
         help='For additional help: "synapsemonitor <COMMAND> -h"',
     )
     parser_monitor = subparsers.add_parser(
-        "view", help="Monitor entities tracked in a Synapse Fileview."
+        "monitor", help="Find new or modified entities."
     )
     parser_monitor.add_argument(
-        "view_id",
-        metavar="id",
+        "synapse_id",
+        metavar="synapse_id",
         type=str,
         help="Synapse ID of fileview to be monitored.",
     )
     parser_monitor.add_argument(
         "--users",
+        "-u",
         nargs="+",
         help="User Id or username of individuals to send report. "
         "If not specified will defaults to logged in Synapse user.",
     )
     parser_monitor.add_argument(
-        "--output", help="Output modified entities into this csv file."
+        "--output",
+        "-o",
+        help="Output modified entities into this csv file. (default: None)",
     )
     parser_monitor.add_argument(
         "--email_subject",
+        "-e",
         default="New Synapse Files",
         help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
@@ -98,16 +105,18 @@ def build_parser():
         "(default: %(default)s)",
     )
     parser_monitor.add_argument(
-        "--verbose",
-        "-v",
-        dest="verbose",
-        action="store_true",
-        help="Print messages on script progress",
+        "--log",
+        "-l",
+        metavar="level",
+        type=str,
+        choices=["debug", "info", "warning", "error"],
+        default="error",
+        help="Set logging output level " "(default: %(default)s)",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
     parser_create_view = subparsers.add_parser(
-        "create-file-view",
+        "create",
         help="Creates a file view that will list all the File entities under "
         "the specified scopes (Synapse Folders or Projects). This will "
         "allow you to query for the files contained in your specified "
@@ -156,6 +165,12 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
 def main():
     """Invoke"""
     args = build_parser().parse_args()
+
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError("Invalid log level: %s" % args.log)
+    logging.basicConfig(level=numeric_level)
+
     syn = synapse_login(synapse_config=args.synapse_config)
     args.func(syn, args)
 
