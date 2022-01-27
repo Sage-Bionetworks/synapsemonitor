@@ -172,7 +172,7 @@ def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> list:
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
         return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
-    elif isinstance(entity, synapseclient.File):
+    elif isinstance(entity, (synapseclient.File, synapseclient.Schema)):
         return _find_modified_entities_file(syn=syn, syn_id=syn_id, days=days)
     elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
         return _find_modified_entities_container(syn=syn, syn_id=syn_id, days=days)
