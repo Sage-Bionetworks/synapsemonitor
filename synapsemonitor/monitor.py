@@ -1,8 +1,8 @@
 """Monitor Synapse Project"""
-import typing
-import logging
 from datetime import datetime, timedelta
 from dateutil import tz
+import logging
+import typing
 
 import pandas as pd
 import synapseclient
@@ -103,11 +103,11 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> li
         List of synapse ids
     """
     entity = syn.get(syn_id, downloadFile=False)
+    # Entity modified on returns UTC time
     utc_mod = datetime.strptime(entity["modifiedOn"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(
         tzinfo=tz.tzutc()
     )
     utc_now = datetime.now().replace(tzinfo=tz.tzutc())
-
     if utc_mod > utc_now - timedelta(days=days):
         return [syn_id]
     return []

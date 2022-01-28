@@ -1,4 +1,6 @@
 """Test monitor module"""
+from datetime import datetime, timedelta
+from dateutil import tz
 from unittest import mock
 from unittest.mock import Mock, patch
 
@@ -10,7 +12,7 @@ from synapsemonitor import monitor
 import synapsemonitor
 
 
-class TestModifiedEntities:
+class TestModifiedEntitiesFileView:
     """Test modifying entities"""
     def setup_method(self):
         self.syn = Mock()
@@ -67,6 +69,38 @@ class TestModifiedEntities:
             # patch_render.assert_called_once_with(
             #     self.syn, viewdf=self.query_resultsdf
             # )
+
+
+def test__find_modified_entities_file_modified():
+    """Patch finding modified entities no modified"""
+    syn = Mock()
+    date_mod = datetime.now().replace(tzinfo=tz.tzutc()).strftime(
+        "%Y-%m-%dT%H:%M:%S.%fZ"
+    )
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(
+            syn, "syn234", days=1
+        )
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == ["syn234"]
+
+
+def test__find_modified_entities_file_none():
+    """Patch finding modified entities no modified"""
+    syn = Mock()
+    # create a modified date that is in the past
+    old_modified = datetime.now() - timedelta(days=3)
+    date_mod = old_modified.replace(tzinfo=tz.tzutc()).strftime(
+        "%Y-%m-%dT%H:%M:%S.%fZ"
+    )
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(
+            syn, "syn234", days=1
+        )
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == []
 
 
 def test__get_user_ids_none():
