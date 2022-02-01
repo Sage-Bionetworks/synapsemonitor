@@ -7,6 +7,7 @@ import typing
 import pandas as pd
 import synapseclient
 from synapseclient import EntityViewSchema, EntityViewType, Synapse
+from synapseutils import walk
 
 
 def create_file_view(
@@ -113,6 +114,47 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> li
     return []
 
 
+def _traverse(
+    syn: Synapse, synid_root: str, include_types: list = ["folder", "file", "project"]
+) -> list:
+    """Traverse Synapse entity hierarchy to gather all descendant
+    entities of a root entity.
+    Args:
+        syn: Synapse connection
+        synid_root: Synapse ID of root entity.
+        include_types: Must be a list of entity types (ie. [“folder”,”file”])
+            which can be found here:
+            http://docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html
+    Returns:
+        List of descendant Synapse IDs and root Synapse ID
+    """
+
+    synid_desc = []
+    exclude_folder = True
+
+    # full traverse depends on examining folder entities, even if not requested
+    include_types_mod = include_types.copy()
+    for include_type in include_types:
+        if include_type == "folder":
+            exclude_folder = False
+    if exclude_folder:
+        include_types_mod.append("folder")
+
+    synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
+    print(synid_children)
+    for synid_child in synid_children:
+        synid_desc = synid_desc + _traverse(
+            syn=syn, synid_root=synid_child["id"], include_types=include_types
+        )
+
+    # only return folder entities if requested
+    entity = syn.get(synid_root, downloadFile=False)
+    if not (exclude_folder and entity["concreteType"].split(".")[-1] == "Folder"):
+        synid_desc.append(synid_root)
+
+    return synid_desc
+
+
 def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) -> list:
     """Finds entities in a folder or project modified in the past N number of days
 
@@ -124,7 +166,15 @@ def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) 
     Returns:
         List of synapse ids
     """
-    raise NotImplementedError("Projects and folders not supported yet")
+    syn_id_mod = []
+    syn_id_children = _traverse(syn, syn_id)
+
+    for syn_id_child in syn_id_children:
+        syn_id_res = _find_modified_entities_file(syn, syn_id_child, days)
+        if syn_id_res is not None:
+            syn_id_mod.extend(syn_id_res)
+
+    return syn_id_mod
 
 
 def _force_update_view(syn: Synapse, view_id: str):
