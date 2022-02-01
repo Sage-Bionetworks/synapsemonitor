@@ -20,13 +20,13 @@ def monitor_cli(syn, args):
 
     email_action = actions.EmailAction(
         syn=syn,
-        syn_id=args.view_id,
+        syn_id=args.synapse_id,
         email_subject=args.email_subject,
         users=args.users,
         days=args.days,
     )
     action_results = actions.synapse_action(action_cls=email_action)
-    filesdf = pd.DataFrame({"syn_id": action_results})
+    ids = pd.DataFrame({"syn_id": action_results})
     if args.output:
         pd.DataFrame(ids).to_csv(args.output, index=False, header=False)
     else:
@@ -107,7 +107,6 @@ def build_parser():
     parser_monitor.add_argument(
         "--log",
         "-l",
-        metavar="level",
         type=str,
         choices=["debug", "info", "warning", "error"],
         default="error",
