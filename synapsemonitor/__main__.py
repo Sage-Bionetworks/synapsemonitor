@@ -49,7 +49,7 @@ def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
         description="Checks for new/modified Synapse entities. "
-        "If a Project or Folder entity is specified, that entity and all its contents will be monitored. " 
+        "If a Project or Folder entity is specified, that entity and all its contents will be monitored. "
         "A Synapse File View can be created to allow users to track the contents of Projects "
         "or Folders with many entities more efficiently. For more information, head to "
         "https://docs.synapse.org/articles/views.html. You can use the "
