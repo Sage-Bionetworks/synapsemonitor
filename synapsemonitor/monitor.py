@@ -7,7 +7,6 @@ import typing
 import pandas as pd
 import synapseclient
 from synapseclient import EntityViewSchema, EntityViewType, Synapse
-from synapseutils import walk
 
 
 def create_file_view(

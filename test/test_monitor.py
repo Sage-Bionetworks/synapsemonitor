@@ -2,14 +2,13 @@
 from datetime import datetime, timedelta
 from dateutil import tz
 from unittest import mock
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
-from synapseclient import Synapse, EntityViewSchema, Project, Folder, File, Entity
+from synapseclient import EntityViewSchema, Project, Folder, File, Entity
 
 from synapsemonitor import monitor
-import synapsemonitor
 
 
 class TestModifiedEntitiesFileView:
