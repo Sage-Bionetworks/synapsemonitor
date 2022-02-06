@@ -48,11 +48,12 @@ def create_file_view_cli(syn, args):
 def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
-        description="Checks for new/modified entities in a Fileview. A Synapse "
-        "Fileview can be created to allow users to track entities in a Project "
-        "or Folder.  For more information, head to "
+        description="Checks for new/modified Synapse entities. "
+        "If a Project or Folder entity is specified, that entity and all its contents will be monitored. " 
+        "A Synapse File View can be created to allow users to track the contents of Projects "
+        "or Folders with many entities more efficiently. For more information, head to "
         "https://docs.synapse.org/articles/views.html. You can use the "
-        "`create-file-view` function provided in this package to create a File View."
+        "`create` function provided in this package to create a File View."
     )
     parser.add_argument(
         "-c",
@@ -75,7 +76,7 @@ def build_parser():
         "synapse_id",
         metavar="synapse_id",
         type=str,
-        help="Synapse ID of fileview to be monitored.",
+        help="Synapse ID of entity to be monitored.",
     )
     parser_monitor.add_argument(
         "--users",
