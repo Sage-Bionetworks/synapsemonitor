@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from dateutil import tz
 from unittest import mock
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 
 import pandas as pd
 import pytest
@@ -78,6 +78,103 @@ class TestModifiedEntitiesFileView:
             # patch_render.assert_called_once_with(
             #     self.syn, viewdf=self.query_resultsdf
             # )
+
+
+class TestModifiedContainer:
+    """Test modifying containers"""
+
+    def setup_method(self):
+        self.syn = Mock()
+        self.days = 1
+        self.now = datetime.now().replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.past = (datetime.now().replace(tzinfo=tz.tzutc()) - timedelta(days=self.days+1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.project = Project(name="test_project", parentId = "syn0", modifiedOn=self.now)
+        self.folder = Folder(name="test_folder", parentId = "syn1", modifiedOn=self.now)
+        self.file = File(name="test_file", parentId = "syn2", modifiedOn=self.now)
+
+
+    def test__traverse_folder_include(self):
+        """Traverse folder no children"""
+        with patch.object(self.syn, "get",
+                          return_value=self.folder) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            desc = monitor._traverse(self.syn, self.folder["parentId"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == [self.folder["parentId"]]
+
+
+    def test__traverse_folder_exclude(self):
+        """Traverse folder no children"""
+        with patch.object(self.syn, "get",
+                          return_value=self.folder) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            desc = monitor._traverse(self.syn, self.folder["parentId"], include_types=["file"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == []
+
+
+    def test__find_modified_entities_folder_modified(self):
+        """Find modified entities in a folder"""
+        with patch.object(self.syn, "get",
+                          return_value=self.folder) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            modified_list = monitor._find_modified_entities_container(
+                self.syn, self.folder["parentId"], days=self.days
+            )
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert modified_list == ["syn1"]
+
+
+    def test__find_modified_entities_project_modified(self):
+        """Find modified entities in a project"""
+        with patch.object(self.syn, "get",
+                          return_value=self.project) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            modified_list = monitor._find_modified_entities_container(
+                self.syn, self.project["parentId"], days=self.days
+            )
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert modified_list == ["syn0"]
+
+    def test__find_modified_entities_folder_not_modified(self):
+        """Find no modified entities in a folder"""
+
+        folder = self.folder
+        folder['modifiedOn'] = self.past
+        with patch.object(self.syn, "get",
+                          return_value=folder) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            modified_list = monitor._find_modified_entities_container(
+                self.syn, "syn234", days=self.days
+            )
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert modified_list == []
+
+
+    def test__find_modified_entities_project_not_modified(self):
+        """Find no modified entities in a project"""
+        project = self.project
+        project['modifiedOn'] = self.past
+        with patch.object(self.syn, "get",
+                          return_value=self.project) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            modified_list = monitor._find_modified_entities_container(
+                self.syn, "syn234", days=self.days
+            )
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert modified_list == []
 
 
 def test__find_modified_entities_file_modified():
