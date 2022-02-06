@@ -141,7 +141,6 @@ def _traverse(
         include_types_mod.append("folder")
 
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
-    print(synid_children)
     for synid_child in synid_children:
         synid_desc = synid_desc + _traverse(
             syn=syn, synid_root=synid_child["id"], include_types=include_types
