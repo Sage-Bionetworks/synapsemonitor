@@ -118,10 +118,10 @@ class TestModifiedContainer:
 
     def test__find_modified_entities_folder_modified(self):
         """Find modified entities in a folder"""
-        with patch.object(self.syn, "get",
-                          return_value=self.folder) as patch_get,\
-            patch.object(self.syn, "getChildren",
-                         return_value=[]) as patch_child:
+        with patch.object(monitor, "_traverse",
+                          return_value=[self.folder["parentId"]]) as patch_get,\
+            patch.object(monitor, "_find_modified_entities_file",
+                         return_value=[self.folder["parentId"]]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
                 self.syn, self.folder["parentId"], days=self.days
             )
@@ -132,10 +132,10 @@ class TestModifiedContainer:
 
     def test__find_modified_entities_project_modified(self):
         """Find modified entities in a project"""
-        with patch.object(self.syn, "get",
-                          return_value=self.project) as patch_get,\
-            patch.object(self.syn, "getChildren",
-                         return_value=[]) as patch_child:
+        with patch.object(monitor, "_traverse",
+                          return_value=[self.project["parentId"]]) as patch_get,\
+            patch.object(monitor, "_find_modified_entities_file",
+                         return_value=[self.project["parentId"]]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
                 self.syn, self.project["parentId"], days=self.days
             )
@@ -148,9 +148,9 @@ class TestModifiedContainer:
 
         folder = self.folder
         folder['modifiedOn'] = self.past
-        with patch.object(self.syn, "get",
-                          return_value=folder) as patch_get,\
-            patch.object(self.syn, "getChildren",
+        with patch.object(monitor, "_traverse",
+                          return_value=[self.folder["parentId"]]) as patch_get,\
+            patch.object(monitor, "_find_modified_entities_file",
                          return_value=[]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
                 self.syn, "syn234", days=self.days
@@ -164,9 +164,9 @@ class TestModifiedContainer:
         """Find no modified entities in a project"""
         project = self.project
         project['modifiedOn'] = self.past
-        with patch.object(self.syn, "get",
-                          return_value=self.project) as patch_get,\
-            patch.object(self.syn, "getChildren",
+        with patch.object(monitor, "_traverse",
+                          return_value=[self.folder["parentId"]]) as patch_get,\
+            patch.object(monitor, "_find_modified_entities_file",
                          return_value=[]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
                 self.syn, "syn234", days=self.days
