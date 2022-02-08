@@ -114,7 +114,9 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> li
 
 
 def _traverse(
-    syn: Synapse, synid_root: str, include_types: list = ["folder", "file", "project"]
+    syn: Synapse,
+    synid_root: str,
+    include_types: typing.List = ["folder", "file", "project"],
 ) -> list:
     """Traverse Synapse entity hierarchy to gather all descendant
     entities of a root entity.
@@ -129,14 +131,10 @@ def _traverse(
     """
 
     synid_desc = []
-    exclude_folder = True
 
     # full traverse depends on examining folder entities, even if not requested
     include_types_mod = include_types.copy()
-    for include_type in include_types:
-        if include_type == "folder":
-            exclude_folder = False
-    if exclude_folder:
+    if "folder" not in include_types_mod:
         include_types_mod.append("folder")
 
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
@@ -147,7 +145,10 @@ def _traverse(
 
     # only return folder entities if requested
     entity = syn.get(synid_root, downloadFile=False)
-    if not (exclude_folder and entity["concreteType"].split(".")[-1] == "Folder"):
+    if not (
+        "folder" not in include_types
+        and entity["concreteType"].split(".")[-1] == "Folder"
+    ):
         synid_desc.append(synid_root)
 
     return synid_desc
