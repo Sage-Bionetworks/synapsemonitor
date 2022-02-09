@@ -93,7 +93,7 @@ class TestModifiedContainer:
 
 
     def test__traverse_folder_include(self):
-        """Traverse folder no children"""
+        """Traverse folder no children including project entity types"""
         with patch.object(self.syn, "get",
                           return_value=self.folder) as patch_get,\
             patch.object(self.syn, "getChildren",
@@ -105,12 +105,60 @@ class TestModifiedContainer:
 
 
     def test__traverse_folder_exclude(self):
-        """Traverse folder no children"""
+        """Traverse folder no children excluding folder entity types"""
         with patch.object(self.syn, "get",
                           return_value=self.folder) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
             desc = monitor._traverse(self.syn, self.folder["parentId"], include_types=["file"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == []
+
+
+    def test__traverse_project_include(self):
+        """Traverse project with no children including project entity types"""
+        with patch.object(self.syn, "get",
+                          return_value=self.project) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            desc = monitor._traverse(self.syn, self.project["parentId"], include_types=["file", "folder", "project"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == [self.project["parentId"]]
+
+
+    def test__traverse_project_exclude(self):
+        """Traverse project with no children excluding project entity types"""
+        with patch.object(self.syn, "get",
+                          return_value=self.project) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            desc = monitor._traverse(self.syn, self.project["parentId"], include_types=["file", "folder"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == []
+
+    
+    def test__traverse_file_include(self):
+        """Traverse file including file entity types"""
+        with patch.object(self.syn, "get",
+                          return_value=self.file) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            desc = monitor._traverse(self.syn, self.file["parentId"], include_types=["file", "folder", "project"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == [self.file["parentId"]]
+
+
+    def test__traverse_file_exclude(self):
+        """Traverse project with no children excluding project entity types"""
+        with patch.object(self.syn, "get",
+                          return_value=self.file) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[]) as patch_child:
+            desc = monitor._traverse(self.syn, self.file["parentId"], include_types=["folder", "project"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == []
