@@ -150,7 +150,8 @@ def _traverse(
                 )
             )
         else:
-            synid_desc.append(synid_child["id"])
+            if entity_type in include_types:
+                synid_desc.append(synid_child["id"])
 
     # only requested entity types
     entity = syn.get(synid_root, downloadFile=False)
