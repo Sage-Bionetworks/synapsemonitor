@@ -133,9 +133,9 @@ def _traverse(
     synid_desc = []
 
     # full traverse depends on examining folder entities, even if not requested
-    include_types_mod = include_types.copy()
-    if "folder" not in include_types_mod:
-        include_types_mod.append("folder")
+    include_types_mod = set(include_types)
+    include_types_mod.add("folder")
+    include_types_mod = list(include_types_mod)
 
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
     for synid_child in synid_children:
