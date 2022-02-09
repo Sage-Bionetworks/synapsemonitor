@@ -139,16 +139,14 @@ def _traverse(
 
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
     for synid_child in synid_children:
-        synid_desc = synid_desc + _traverse(
+        synid_desc.extend(_traverse(
             syn=syn, synid_root=synid_child["id"], include_types=include_types
-        )
+        ))
 
     # only return folder entities if requested
     entity = syn.get(synid_root, downloadFile=False)
-    if not (
-        "folder" not in include_types
-        and entity["concreteType"].split(".")[-1] == "Folder"
-    ):
+    entity_type = entity["concreteType"].split(".")[-1]
+    if "folder" in include_types or entity_type != "Folder":
         synid_desc.append(synid_root)
 
     return synid_desc
@@ -170,7 +168,7 @@ def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) 
 
     for syn_id_child in syn_id_children:
         syn_id_res = _find_modified_entities_file(syn, syn_id_child, days)
-        if syn_id_res is not None:
+        if syn_id_res:
             syn_id_mod.extend(syn_id_res)
 
     return syn_id_mod
