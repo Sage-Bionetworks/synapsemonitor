@@ -139,9 +139,11 @@ def _traverse(
 
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
     for synid_child in synid_children:
-        synid_desc.extend(_traverse(
-            syn=syn, synid_root=synid_child["id"], include_types=include_types
-        ))
+        synid_desc.extend(
+            _traverse(
+                syn=syn, synid_root=synid_child["id"], include_types=include_types
+            )
+        )
 
     # only return folder entities if requested
     entity = syn.get(synid_root, downloadFile=False)
