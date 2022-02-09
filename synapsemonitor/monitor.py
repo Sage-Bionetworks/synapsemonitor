@@ -145,10 +145,10 @@ def _traverse(
             )
         )
 
-    # only return folder entities if requested
+    # only requested entity types
     entity = syn.get(synid_root, downloadFile=False)
-    entity_type = entity["concreteType"].split(".")[-1]
-    if "folder" in include_types or entity_type != "Folder":
+    entity_type = entity["concreteType"].split(".")[-1].lower().replace("entity", "")
+    if entity_type in include_types:
         synid_desc.append(synid_root)
 
     return synid_desc
