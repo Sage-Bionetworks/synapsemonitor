@@ -139,9 +139,8 @@ def _traverse(
 
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
     for synid_child in synid_children:
-        entity = syn.get(synid_child["id"], downloadFile=False)
         entity_type = (
-            entity["concreteType"].split(".")[-1].lower().replace("entity", "")
+            synid_child["type"].split(".")[-1].lower().replace("entity", "")
         )
         if entity_type in ["folder", "project"]:
             synid_desc.extend(
