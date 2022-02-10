@@ -90,6 +90,7 @@ class TestModifiedContainer:
         self.project = Project(name="test_project", id = "syn0", modifiedOn=self.now, parentId = "syn00")
         self.folder = Folder(name="test_folder", id = "syn1", modifiedOn=self.now, parentId = "syn0")
         self.file = File(name="test_file", id = "syn2", modifiedOn=self.now, parentId = "syn1")
+        self.file_child = File(name="test_file", id = "syn2", modifiedOn=self.now, parentId = "syn1", type = "org.sagebionetworks.repo.model.FileEntity")
 
 
     def test__traverse_folder_include(self):
@@ -164,6 +165,18 @@ class TestModifiedContainer:
             assert desc == []
 
 
+    def test__traverse_folder_with_file_child(self):
+        """Traverse project with no children excluding project entity types"""
+        with patch.object(self.syn, "get",
+                          return_value=self.folder) as patch_get,\
+            patch.object(self.syn, "getChildren",
+                         return_value=[self.file_child]) as patch_child:
+            desc = monitor._traverse(self.syn, self.folder["id"], include_types=["folder", "project", "file"])
+            patch_get.assert_called()
+            patch_child.assert_called()
+            assert desc == [self.file_child["id"], self.folder["id"]]
+            
+            
     def test__find_modified_entities_folder_modified(self):
         """Find modified entities in a folder"""
         with patch.object(monitor, "_traverse",
