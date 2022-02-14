@@ -116,7 +116,7 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> li
 def _traverse(
     syn: Synapse,
     synid_root: str,
-    include_types: typing.List = ["folder", "file", "project"],
+    include_types: typing.List = ["file"],
 ) -> list:
     """Traverse Synapse entity hierarchy to gather all descendant
     entities of a root entity.
