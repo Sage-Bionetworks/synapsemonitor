@@ -140,7 +140,7 @@ def _traverse(
     synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
     for synid_child in synid_children:
         entity_type = synid_child["type"].split(".")[-1].lower().replace("entity", "")
-        if entity_type in ["folder", "project"]:
+        if entity_type == "folder":
             synid_desc.extend(
                 _traverse(
                     syn=syn, synid_root=synid_child["id"], include_types=include_types
