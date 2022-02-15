@@ -20,13 +20,13 @@ def monitor_cli(syn, args):
 
     email_action = actions.EmailAction(
         syn=syn,
-        syn_id=args.view_id,
+        syn_id=args.synapse_id,
         email_subject=args.email_subject,
         users=args.users,
         days=args.days,
     )
     action_results = actions.synapse_action(action_cls=email_action)
-    filesdf = pd.DataFrame({"syn_id": action_results})
+    ids = pd.DataFrame({"syn_id": action_results})
     if args.output:
         pd.DataFrame(ids).to_csv(args.output, index=False, header=False)
     else:
@@ -48,11 +48,12 @@ def create_file_view_cli(syn, args):
 def build_parser():
     """Set up argument parser and returns"""
     parser = argparse.ArgumentParser(
-        description="Checks for new/modified entities in a Fileview. A Synapse "
-        "Fileview can be created to allow users to track entities in a Project "
-        "or Folder.  For more information, head to "
+        description="Checks for new/modified Synapse entities. "
+        "If a Project or Folder entity is specified, that entity and all its contents will be monitored. "
+        "A Synapse File View can be created to allow users to track the contents of Projects "
+        "or Folders with many entities more efficiently. For more information, head to "
         "https://docs.synapse.org/articles/views.html. You can use the "
-        "`create-file-view` function provided in this package to create a File View."
+        "`create` function provided in this package to create a File View."
     )
     parser.add_argument(
         "-c",
@@ -75,7 +76,7 @@ def build_parser():
         "synapse_id",
         metavar="synapse_id",
         type=str,
-        help="Synapse ID of fileview to be monitored.",
+        help="Synapse ID of entity to be monitored.",
     )
     parser_monitor.add_argument(
         "--users",
@@ -107,7 +108,6 @@ def build_parser():
     parser_monitor.add_argument(
         "--log",
         "-l",
-        metavar="level",
         type=str,
         choices=["debug", "info", "warning", "error"],
         default="error",

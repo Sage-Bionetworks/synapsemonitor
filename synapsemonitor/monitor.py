@@ -113,6 +113,71 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> li
     return []
 
 
+def _traverse(
+    syn: Synapse,
+    synid_root: str,
+    include_types: typing.List = ["file"],
+) -> list:
+    """Traverse Synapse entity hierarchy to gather all descendant
+    entities of a root entity.
+    Args:
+        syn: Synapse connection
+        synid_root: Synapse ID of root entity.
+        include_types: Must be a list of entity types (ie. [“folder”,”file”])
+            which can be found here:
+            http://docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html
+    Returns:
+        List of descendant Synapse IDs without root Synapse ID
+    """
+
+    synid_desc = []
+
+    # full traverse depends on examining folder entities, even if not requested
+    include_types_mod = set(include_types)
+    include_types_mod.add("folder")
+    include_types_mod = list(include_types_mod)
+
+    synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
+    for synid_child in synid_children:
+        entity_type = synid_child["type"].split(".")[-1].lower().replace("entity", "")
+        if entity_type == "folder":
+            synid_desc.extend(
+                _traverse(
+                    syn=syn, synid_root=synid_child["id"], include_types=include_types
+                )
+            )
+        if entity_type in include_types:
+            synid_desc.append(synid_child["id"])
+
+    return synid_desc
+
+
+def _traverse_root(
+    syn: Synapse,
+    synid_root: str,
+    include_types: typing.List = ["file"],
+) -> list:
+    """Wrapper for call traverse to include root.
+
+    Args:
+        syn (Synapse): Synapse connection
+        synid_root (str): Synapse ID of root entity.
+        include_types (typing.List, optional): Must be a list of entity types (ie. [“folder”,”file”])
+            which can be found here:
+            http://docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html
+
+    Returns:
+        list: List of descendant Synapse IDs with root Synapse ID
+    """
+    synid_desc = _traverse(syn, synid_root, include_types)
+    entity = syn.get(synid_root, downloadFile=False)
+    entity_type = entity["concreteType"].split(".")[-1].lower().replace("entity", "")
+    if entity_type in include_types:
+        synid_desc.append(synid_root)
+
+    return synid_desc
+
+
 def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) -> list:
     """Finds entities in a folder or project modified in the past N number of days
 
@@ -124,7 +189,15 @@ def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) 
     Returns:
         List of synapse ids
     """
-    raise NotImplementedError("Projects and folders not supported yet")
+    syn_id_mod = []
+    syn_id_children = _traverse_root(syn, syn_id)
+
+    for syn_id_child in syn_id_children:
+        syn_id_res = _find_modified_entities_file(syn, syn_id_child, days)
+        if syn_id_res:
+            syn_id_mod.extend(syn_id_res)
+
+    return syn_id_mod
 
 
 def _force_update_view(syn: Synapse, view_id: str):
