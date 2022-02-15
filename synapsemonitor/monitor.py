@@ -152,8 +152,12 @@ def _traverse(
     return synid_desc
 
 
-def _traverse_root(syn: Synapse, synid_root: str, include_types: typing.List = ["file"],) -> list:
-    """Wrapper for call traverse to include root.  
+def _traverse_root(
+    syn: Synapse,
+    synid_root: str,
+    include_types: typing.List = ["file"],
+) -> list:
+    """Wrapper for call traverse to include root.
 
     Args:
         syn (Synapse): Synapse connection
