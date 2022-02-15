@@ -99,7 +99,7 @@ class TestModifiedContainer:
                           return_value=self.folder) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
-            desc = monitor._traverse(self.syn, self.folder["id"])
+            desc = monitor._traverse_root(self.syn, self.folder["id"], include_types=["file", "folder", "project"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == [self.folder["id"]]
@@ -111,7 +111,7 @@ class TestModifiedContainer:
                           return_value=self.folder) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
-            desc = monitor._traverse(self.syn, self.folder["id"], include_types=["file"])
+            desc = monitor._traverse_root(self.syn, self.folder["id"], include_types=["file"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == []
@@ -123,7 +123,7 @@ class TestModifiedContainer:
                           return_value=self.project) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
-            desc = monitor._traverse(self.syn, self.project["id"], include_types=["file", "folder", "project"])
+            desc = monitor._traverse_root(self.syn, self.project["id"], include_types=["file", "folder", "project"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == [self.project["id"]]
@@ -135,7 +135,7 @@ class TestModifiedContainer:
                           return_value=self.project) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
-            desc = monitor._traverse(self.syn, self.project["id"], include_types=["file", "folder"])
+            desc = monitor._traverse_root(self.syn, self.project["id"], include_types=["file", "folder"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == []
@@ -147,7 +147,7 @@ class TestModifiedContainer:
                           return_value=self.file) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
-            desc = monitor._traverse(self.syn, self.file["id"], include_types=["file", "folder", "project"])
+            desc = monitor._traverse_root(self.syn, self.file["id"], include_types=["file", "folder", "project"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == [self.file["id"]]
@@ -159,7 +159,7 @@ class TestModifiedContainer:
                           return_value=self.file) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[]) as patch_child:
-            desc = monitor._traverse(self.syn, self.file["id"], include_types=["folder", "project"])
+            desc = monitor._traverse_root(self.syn, self.file["id"], include_types=["folder", "project"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == []
@@ -171,7 +171,7 @@ class TestModifiedContainer:
                           return_value=self.folder) as patch_get,\
             patch.object(self.syn, "getChildren",
                          return_value=[self.file_child]) as patch_child:
-            desc = monitor._traverse(self.syn, self.folder["id"], include_types=["folder", "project", "file"])
+            desc = monitor._traverse_root(self.syn, self.folder["id"], include_types=["folder", "project", "file"])
             patch_get.assert_called()
             patch_child.assert_called()
             assert desc == [self.file_child["id"], self.folder["id"]]
@@ -179,7 +179,7 @@ class TestModifiedContainer:
             
     def test__find_modified_entities_folder_modified(self):
         """Find modified entities in a folder"""
-        with patch.object(monitor, "_traverse",
+        with patch.object(monitor, "_traverse_root",
                           return_value=[self.folder["id"]]) as patch_get,\
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[self.folder["id"]]) as patch_child:
@@ -193,7 +193,7 @@ class TestModifiedContainer:
 
     def test__find_modified_entities_project_modified(self):
         """Find modified entities in a project"""
-        with patch.object(monitor, "_traverse",
+        with patch.object(monitor, "_traverse_root",
                           return_value=[self.project["id"]]) as patch_get,\
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[self.project["id"]]) as patch_child:
@@ -209,7 +209,7 @@ class TestModifiedContainer:
 
         folder = self.folder
         folder['modifiedOn'] = self.past
-        with patch.object(monitor, "_traverse",
+        with patch.object(monitor, "_traverse_root",
                           return_value=[self.folder["id"]]) as patch_get,\
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[]) as patch_child:
@@ -225,7 +225,7 @@ class TestModifiedContainer:
         """Find no modified entities in a project"""
         project = self.project
         project['modifiedOn'] = self.past
-        with patch.object(monitor, "_traverse",
+        with patch.object(monitor, "_traverse_root",
                           return_value=[self.folder["id"]]) as patch_get,\
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[]) as patch_child:
