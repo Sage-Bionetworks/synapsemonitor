@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>synapsemonitor.monitor API documentation</title>
+<meta name="description" content="Monitor Synapse Project" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>synapsemonitor.monitor</code></h1>
+</header>
+<section id="section-intro">
+<p>Monitor Synapse Project</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Monitor Synapse Project&#34;&#34;&#34;
+from datetime import datetime, timedelta
+from dateutil import tz
+import logging
+import typing
+
+import pandas as pd
+import synapseclient
+from synapseclient import EntityViewSchema, EntityViewType, Synapse
+
+
+def create_file_view(
+    syn: Synapse, name: str, project_id: str, scope_ids: typing.List[str]
+) -&gt; EntityViewSchema:
+    &#34;&#34;&#34;Creates a file view that will list all the File entities under
+    the specified scopes (Synapse Folders or Projects). This will
+    allow you to query for the files contained in your specified scopes.
+    This will NOT track the other entities currently: PROJECT, TABLE,
+    FOLDER, VIEW, DOCKER.
+
+    Args:
+        syn: Synapse connection
+        name: File view name
+        project_id: Synapse project id to store your file view
+        scope_ids: List of Folder or Project synapse Ids
+
+    Returns:
+        Synapse file view
+    &#34;&#34;&#34;
+    view = EntityViewSchema(
+        name=name,
+        parent=project_id,
+        scopes=scope_ids,
+        includeEntityTypes=[EntityViewType.FILE],
+        add_default_columns=True,
+        addAnnotationColumns=False,
+    )
+    return syn.store(view)
+
+
+def _render_fileview(
+    syn: Synapse, viewdf: pd.DataFrame, tz_name=&#34;US/Pacific&#34;
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Renders file view values such as changing modifiedOn from
+    Epoch time to US/Pacific datetime and Synapse userids to usernames
+
+    Args:
+        syn: Synapse connection
+        viewdf: File view dataframe
+        tz_name: Timezone database name
+                 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+    Returns:
+        Rendered File view dataframe
+
+    &#34;&#34;&#34;
+    viewdf[&#34;createdOn&#34;] = (
+        pd.to_datetime(viewdf[&#34;createdOn&#34;], unit=&#34;ms&#34;)
+        .dt.tz_localize(&#34;utc&#34;)
+        .dt.tz_convert(tz_name)
+    )
+    viewdf[&#34;modifiedOn&#34;] = (
+        pd.to_datetime(viewdf[&#34;modifiedOn&#34;], unit=&#34;ms&#34;)
+        .dt.tz_localize(&#34;utc&#34;)
+        .dt.tz_convert(tz_name)
+    )
+    users = [syn.getUserProfile(user)[&#34;userName&#34;] for user in viewdf[&#34;modifiedBy&#34;]]
+    viewdf[&#34;modifiedBy&#34;] = users
+    return viewdf
+
+
+def _find_modified_entities_fileview(syn: Synapse, syn_id: str, days: int = 1) -&gt; list:
+    &#34;&#34;&#34;Finds entities scoped in a fileview modified in the past N number of days
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Fileview Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    &#34;&#34;&#34;
+    # Update the view
+    # _force_update_view(syn, view_id)
+    query = (
+        f&#34;select id from {syn_id} where &#34;
+        f&#34;modifiedOn &gt; unix_timestamp(NOW() - INTERVAL {days} DAY)*1000&#34;
+    )
+    results = syn.tableQuery(query)
+    resultsdf = results.asDataFrame()
+    return resultsdf[&#34;id&#34;].tolist()
+
+
+def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -&gt; list:
+    &#34;&#34;&#34;Determines if entity was modified in the past N number of days
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse File Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    &#34;&#34;&#34;
+    entity = syn.get(syn_id, downloadFile=False)
+    # Entity modified on returns UTC time
+    utc_mod = datetime.strptime(entity[&#34;modifiedOn&#34;], &#34;%Y-%m-%dT%H:%M:%S.%fZ&#34;).replace(
+        tzinfo=tz.tzutc()
+    )
+    utc_now = datetime.now().replace(tzinfo=tz.tzutc())
+    if utc_mod &gt; utc_now - timedelta(days=days):
+        return [syn_id]
+    return []
+
+
+def _traverse(
+    syn: Synapse,
+    synid_root: str,
+    include_types: typing.List = [&#34;file&#34;],
+) -&gt; list:
+    &#34;&#34;&#34;Traverse Synapse entity hierarchy to gather all descendant
+    entities of a root entity.
+    Args:
+        syn: Synapse connection
+        synid_root: Synapse ID of root entity.
+        include_types: Must be a list of entity types (ie. [“folder”,”file”])
+            which can be found here:
+            http://docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html
+    Returns:
+        List of descendant Synapse IDs without root Synapse ID
+    &#34;&#34;&#34;
+
+    synid_desc = []
+
+    # full traverse depends on examining folder entities, even if not requested
+    include_types_mod = set(include_types)
+    include_types_mod.add(&#34;folder&#34;)
+    include_types_mod = list(include_types_mod)
+
+    synid_children = syn.getChildren(parent=synid_root, includeTypes=include_types_mod)
+    for synid_child in synid_children:
+        entity_type = synid_child[&#34;type&#34;].split(&#34;.&#34;)[-1].lower().replace(&#34;entity&#34;, &#34;&#34;)
+        if entity_type == &#34;folder&#34;:
+            synid_desc.extend(
+                _traverse(
+                    syn=syn, synid_root=synid_child[&#34;id&#34;], include_types=include_types
+                )
+            )
+        if entity_type in include_types:
+            synid_desc.append(synid_child[&#34;id&#34;])
+
+    return synid_desc
+
+
+def _traverse_root(
+    syn: Synapse,
+    synid_root: str,
+    include_types: typing.List = [&#34;file&#34;],
+) -&gt; list:
+    &#34;&#34;&#34;Wrapper for call traverse to include root.
+
+    Args:
+        syn (Synapse): Synapse connection
+        synid_root (str): Synapse ID of root entity.
+        include_types (typing.List, optional): Must be a list of entity types (ie. [“folder”,”file”])
+            which can be found here:
+            http://docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html
+
+    Returns:
+        list: List of descendant Synapse IDs with root Synapse ID
+    &#34;&#34;&#34;
+    synid_desc = _traverse(syn, synid_root, include_types)
+    entity = syn.get(synid_root, downloadFile=False)
+    entity_type = entity[&#34;concreteType&#34;].split(&#34;.&#34;)[-1].lower().replace(&#34;entity&#34;, &#34;&#34;)
+    if entity_type in include_types:
+        synid_desc.append(synid_root)
+
+    return synid_desc
+
+
+def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) -&gt; list:
+    &#34;&#34;&#34;Finds entities in a folder or project modified in the past N number of days
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Folder or Project Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    &#34;&#34;&#34;
+    syn_id_mod = []
+    syn_id_children = _traverse_root(syn, syn_id)
+
+    for syn_id_child in syn_id_children:
+        syn_id_res = _find_modified_entities_file(syn, syn_id_child, days)
+        if syn_id_res:
+            syn_id_mod.extend(syn_id_res)
+
+    return syn_id_mod
+
+
+def _force_update_view(syn: Synapse, view_id: str):
+    &#34;&#34;&#34;File views are not indexed unless someone queries them by
+    going to the file view on Synapse or querying them via a function
+    call.  This will force the update of the file view to ensure the most
+    up to date fileview is used.
+
+    Args:
+        syn: Synapse connection
+        view_id: Synapse ID of fileview to be monitored.
+    &#34;&#34;&#34;
+    syn.tableQuery(f&#34;select * from {view_id} limit 1&#34;)
+
+
+def _get_user_ids(syn: Synapse, users: list = None):
+    &#34;&#34;&#34;Get users ids from list of user ids or usernames.  This will also
+    confirm that the users specified exist in the system
+
+    Args:
+        syn: Synapse connection
+        users: List of Synapse user Ids or usernames
+
+    Returns:
+        List of Synapse user Ids.
+    &#34;&#34;&#34;
+    if users is None:
+        user_ids = [syn.getUserProfile()[&#34;ownerId&#34;]]
+    else:
+        user_ids = [syn.getUserProfile(user)[&#34;ownerId&#34;] for user in users]
+    return user_ids
+
+
+def find_modified_entities(syn: Synapse, syn_id: str, days: int) -&gt; list:
+    &#34;&#34;&#34;Find modified entities based on the type of the input
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Entity Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    &#34;&#34;&#34;
+    entity = syn.get(syn_id, downloadFile=False)
+    if isinstance(entity, synapseclient.EntityViewSchema):
+        return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, (synapseclient.File, synapseclient.Schema)):
+        return _find_modified_entities_file(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
+        return _find_modified_entities_container(syn=syn, syn_id=syn_id, days=days)
+    else:
+        raise ValueError(f&#34;{type(entity)} not supported&#34;)
+
+
+def monitoring(
+    syn: Synapse,
+    syn_id: str,
+    users: list = None,
+    email_subject: str = &#34;New Synapse Files&#34;,
+    days: int = 1,
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Monitor the modifications of an entity scoped by a Fileview.
+
+    Args:
+        syn: Synapse connection
+        synid: Synapse ID of fileview to be monitored.
+        users: User Id or usernames of individual to send report.
+               If empty, defaults to current logged in Synapse user.
+        email_subject: Sets the subject heading of the email sent out.
+                       (default: &#39;New Synapse Files&#39;)
+        days: Find modifications in the last N days (default: 1)
+
+    Returns:
+        Dataframe with files modified within last N days
+    &#34;&#34;&#34;
+    # get dataframe of files
+    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
+    # Filter out projects and folders
+    logging.info(f&#34;Total number of entities = {len(modified_entities)}&#34;)
+
+    # get user ids
+    user_ids = _get_user_ids(syn, users)
+
+    # TODO: Add function to beautify email message
+
+    # Prepare and send Message
+    if modified_entities:
+        syn.sendMessage(
+            user_ids,
+            email_subject,
+            &#34;, &#34;.join(modified_entities),
+            contentType=&#34;text/html&#34;,
+        )
+    return modified_entities</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="synapsemonitor.monitor.create_file_view"><code class="name flex">
+<span>def <span class="ident">create_file_view</span></span>(<span>syn: synapseclient.client.Synapse, name: str, project_id: str, scope_ids: List[str]) ‑> synapseclient.table.EntityViewSchema</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a file view that will list all the File entities under
+the specified scopes (Synapse Folders or Projects). This will
+allow you to query for the files contained in your specified scopes.
+This will NOT track the other entities currently: PROJECT, TABLE,
+FOLDER, VIEW, DOCKER.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>syn</code></strong></dt>
+<dd>Synapse connection</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>File view name</dd>
+<dt><strong><code>project_id</code></strong></dt>
+<dd>Synapse project id to store your file view</dd>
+<dt><strong><code>scope_ids</code></strong></dt>
+<dd>List of Folder or Project synapse Ids</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Synapse file view</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_file_view(
+    syn: Synapse, name: str, project_id: str, scope_ids: typing.List[str]
+) -&gt; EntityViewSchema:
+    &#34;&#34;&#34;Creates a file view that will list all the File entities under
+    the specified scopes (Synapse Folders or Projects). This will
+    allow you to query for the files contained in your specified scopes.
+    This will NOT track the other entities currently: PROJECT, TABLE,
+    FOLDER, VIEW, DOCKER.
+
+    Args:
+        syn: Synapse connection
+        name: File view name
+        project_id: Synapse project id to store your file view
+        scope_ids: List of Folder or Project synapse Ids
+
+    Returns:
+        Synapse file view
+    &#34;&#34;&#34;
+    view = EntityViewSchema(
+        name=name,
+        parent=project_id,
+        scopes=scope_ids,
+        includeEntityTypes=[EntityViewType.FILE],
+        add_default_columns=True,
+        addAnnotationColumns=False,
+    )
+    return syn.store(view)</code></pre>
+</details>
+</dd>
+<dt id="synapsemonitor.monitor.find_modified_entities"><code class="name flex">
+<span>def <span class="ident">find_modified_entities</span></span>(<span>syn: synapseclient.client.Synapse, syn_id: str, days: int) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find modified entities based on the type of the input</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>syn</code></strong></dt>
+<dd>Synapse connection</dd>
+<dt><strong><code>syn_id</code></strong></dt>
+<dd>Synapse Entity Id</dd>
+<dt><strong><code>days</code></strong></dt>
+<dd>N number of days</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List of synapse ids</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_modified_entities(syn: Synapse, syn_id: str, days: int) -&gt; list:
+    &#34;&#34;&#34;Find modified entities based on the type of the input
+
+    Args:
+        syn: Synapse connection
+        syn_id: Synapse Entity Id
+        days: N number of days
+
+    Returns:
+        List of synapse ids
+    &#34;&#34;&#34;
+    entity = syn.get(syn_id, downloadFile=False)
+    if isinstance(entity, synapseclient.EntityViewSchema):
+        return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, (synapseclient.File, synapseclient.Schema)):
+        return _find_modified_entities_file(syn=syn, syn_id=syn_id, days=days)
+    elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
+        return _find_modified_entities_container(syn=syn, syn_id=syn_id, days=days)
+    else:
+        raise ValueError(f&#34;{type(entity)} not supported&#34;)</code></pre>
+</details>
+</dd>
+<dt id="synapsemonitor.monitor.monitoring"><code class="name flex">
+<span>def <span class="ident">monitoring</span></span>(<span>syn: synapseclient.client.Synapse, syn_id: str, users: list = None, email_subject: str = 'New Synapse Files', days: int = 1) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Monitor the modifications of an entity scoped by a Fileview.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>syn</code></strong></dt>
+<dd>Synapse connection</dd>
+<dt><strong><code>synid</code></strong></dt>
+<dd>Synapse ID of fileview to be monitored.</dd>
+<dt><strong><code>users</code></strong></dt>
+<dd>User Id or usernames of individual to send report.
+If empty, defaults to current logged in Synapse user.</dd>
+<dt><strong><code>email_subject</code></strong></dt>
+<dd>Sets the subject heading of the email sent out.
+(default: 'New Synapse Files')</dd>
+<dt><strong><code>days</code></strong></dt>
+<dd>Find modifications in the last N days (default: 1)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dataframe with files modified within last N days</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def monitoring(
+    syn: Synapse,
+    syn_id: str,
+    users: list = None,
+    email_subject: str = &#34;New Synapse Files&#34;,
+    days: int = 1,
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Monitor the modifications of an entity scoped by a Fileview.
+
+    Args:
+        syn: Synapse connection
+        synid: Synapse ID of fileview to be monitored.
+        users: User Id or usernames of individual to send report.
+               If empty, defaults to current logged in Synapse user.
+        email_subject: Sets the subject heading of the email sent out.
+                       (default: &#39;New Synapse Files&#39;)
+        days: Find modifications in the last N days (default: 1)
+
+    Returns:
+        Dataframe with files modified within last N days
+    &#34;&#34;&#34;
+    # get dataframe of files
+    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
+    # Filter out projects and folders
+    logging.info(f&#34;Total number of entities = {len(modified_entities)}&#34;)
+
+    # get user ids
+    user_ids = _get_user_ids(syn, users)
+
+    # TODO: Add function to beautify email message
+
+    # Prepare and send Message
+    if modified_entities:
+        syn.sendMessage(
+            user_ids,
+            email_subject,
+            &#34;, &#34;.join(modified_entities),
+            contentType=&#34;text/html&#34;,
+        )
+    return modified_entities</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="synapsemonitor" href="index.html">synapsemonitor</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="synapsemonitor.monitor.create_file_view" href="#synapsemonitor.monitor.create_file_view">create_file_view</a></code></li>
+<li><code><a title="synapsemonitor.monitor.find_modified_entities" href="#synapsemonitor.monitor.find_modified_entities">find_modified_entities</a></code></li>
+<li><code><a title="synapsemonitor.monitor.monitoring" href="#synapsemonitor.monitor.monitoring">monitoring</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
