@@ -16,7 +16,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pdoc3 python-dateutil
+          pip install pdoc3
+          pip install .
       - name: Run pdoc3
         run: |
           pdoc3 --html synapsemonitor
