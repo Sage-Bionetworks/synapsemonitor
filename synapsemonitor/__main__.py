@@ -38,11 +38,8 @@ def create_file_view_cli(syn, args):
     fileview = monitor.create_file_view(
         syn, name=args.name, project_id=args.project_id, scope_ids=args.scope_ids
     )
-    print(
-        "To monitor the files in your specified scope, "
-        "you can run the command line function:"
-    )
-    print(f"$ synapsemonitor view {fileview.id} --days 4")
+
+    logging.info(f"Synapse ID of new file view = {fileview['id']}")
 
 
 def build_parser():
@@ -62,6 +59,14 @@ def build_parser():
         type=str,
         default=synapseclient.client.CONFIG_FILE,
         help="Synapse config file with user credentials: (default %(default)s)",
+    )
+    parser.add_argument(
+        "--log",
+        "-l",
+        type=str,
+        choices=["debug", "info", "warning", "error"],
+        default="error",
+        help="Set logging output level " "(default: %(default)s)",
     )
 
     subparsers = parser.add_subparsers(
@@ -104,14 +109,6 @@ def build_parser():
         default=1,
         help="Find modifications to entities in the last N days. "
         "(default: %(default)s)",
-    )
-    parser_monitor.add_argument(
-        "--log",
-        "-l",
-        type=str,
-        choices=["debug", "info", "warning", "error"],
-        default="error",
-        help="Set logging output level " "(default: %(default)s)",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
