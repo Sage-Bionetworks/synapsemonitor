@@ -4,6 +4,8 @@ import argparse
 import logging
 import pandas as pd
 import sys
+import os
+import json
 
 import pandas as pd
 import synapseclient
@@ -133,8 +135,29 @@ def build_parser():
     return parser
 
 
+def get_auth_token() -> str:
+    """Get Synapse personal access token from environmental 
+    variables, if available.
+
+    Returns:
+        str: Synapse personal access token or None
+    """
+    auth_token = None
+    if os.getenv("SYNAPSE_AUTH_TOKEN") is not None: 
+        auth_token = os.getenv("SYNAPSE_AUTH_TOKEN")
+    elif os.getenv("SCHEDULED_JOB_SECRETS") is not None:
+        secrets=json.loads(os.getenv("SCHEDULED_JOB_SECRETS"))
+        auth_token=secrets["SYNAPSE_AUTH_TOKEN"]
+    
+    return auth_token
+
+
 def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
-    """Login to Synapse
+    """Login to Synapse.  Looks for Synapse credentials in the following order:
+    (1) SYNAPSE_AUTH_TOKEN environmental variable
+    (2) SCHEDULED_JOB_SECRETS environmental variable (contains SYNAPSE_AUTH_TOKEN
+        in JSON string)
+    (3) configuration file
 
     Args:
         synapse_config: Path to synapse configuration file.
@@ -145,15 +168,15 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
     """
     try:
         syn = synapseclient.Synapse(skip_checks=True, configPath=synapse_config)
-        syn.login(silent=True)
+        auth_token = get_auth_token()
+        if auth_token is not None: 
+            syn.login(silent=True, authToken=auth_token)
+        else:
+            syn.login(silent=True)
     except (SynapseNoCredentialsError, SynapseAuthenticationError):
         raise ValueError(
             "Login error: please make sure you have correctly "
-            "configured your client.  Instructions here: "
-            "https://help.synapse.org/docs/Client-Configuration.1985446156.html. "
-            "You can also create a Synapse Personal Access Token and set it "
-            "as an environmental variable: "
-            "SYNAPSE_AUTH_TOKEN='<my_personal_access_token>'"
+            "configured your client."
         )
     return syn
 
