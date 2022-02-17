@@ -136,19 +136,19 @@ def build_parser():
 
 
 def get_auth_token() -> str:
-    """Get Synapse personal access token from environmental 
+    """Get Synapse personal access token from environmental
     variables, if available.
 
     Returns:
         str: Synapse personal access token or None
     """
     auth_token = None
-    if os.getenv("SYNAPSE_AUTH_TOKEN") is not None: 
+    if os.getenv("SYNAPSE_AUTH_TOKEN") is not None:
         auth_token = os.getenv("SYNAPSE_AUTH_TOKEN")
     elif os.getenv("SCHEDULED_JOB_SECRETS") is not None:
-        secrets=json.loads(os.getenv("SCHEDULED_JOB_SECRETS"))
-        auth_token=secrets["SYNAPSE_AUTH_TOKEN"]
-    
+        secrets = json.loads(os.getenv("SCHEDULED_JOB_SECRETS"))
+        auth_token = secrets["SYNAPSE_AUTH_TOKEN"]
+
     return auth_token
 
 
@@ -169,7 +169,7 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
     try:
         syn = synapseclient.Synapse(skip_checks=True, configPath=synapse_config)
         auth_token = get_auth_token()
-        if auth_token is not None: 
+        if auth_token is not None:
             syn.login(silent=True, authToken=auth_token)
         else:
             syn.login(silent=True)
