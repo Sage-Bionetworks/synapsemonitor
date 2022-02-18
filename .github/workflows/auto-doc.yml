@@ -2,7 +2,7 @@ name: "Auto generate docs"
 on: 
   push:
     branches:
-      - pdoc3
+      - develop
 jobs:
   docs:
 
