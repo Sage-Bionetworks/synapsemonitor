@@ -2,7 +2,8 @@
 """Command line client"""
 import argparse
 import logging
-import pandas as pd
+import json
+import os
 import sys
 
 import pandas as pd
@@ -134,7 +135,7 @@ def build_parser():
 
 
 def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
-    """Login to Synapse
+    """Login to Synapse.  Looks first for secrets.
 
     Args:
         synapse_config: Path to synapse configuration file.
@@ -145,15 +146,15 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
     """
     try:
         syn = synapseclient.Synapse(skip_checks=True, configPath=synapse_config)
-        syn.login(silent=True)
+        if os.getenv("SCHEDULED_JOB_SECRETS") is not None:
+            secrets = json.loads(os.getenv("SCHEDULED_JOB_SECRETS"))
+            syn.login(silent=True, authToken=secrets["SYNAPSE_AUTH_TOKEN"])
+        else:
+            syn.login(silent=True)
     except (SynapseNoCredentialsError, SynapseAuthenticationError):
         raise ValueError(
             "Login error: please make sure you have correctly "
-            "configured your client.  Instructions here: "
-            "https://help.synapse.org/docs/Client-Configuration.1985446156.html. "
-            "You can also create a Synapse Personal Access Token and set it "
-            "as an environmental variable: "
-            "SYNAPSE_AUTH_TOKEN='<my_personal_access_token>'"
+            "configured your client."
         )
     return syn
 
