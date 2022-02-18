@@ -134,23 +134,6 @@ def build_parser():
     return parser
 
 
-def get_auth_token() -> str:
-    """Get Synapse personal access token from environmental
-    variables, if available.
-
-    Returns:
-        str: Synapse personal access token or None
-    """
-    auth_token = None
-    if os.getenv("SYNAPSE_AUTH_TOKEN") is not None:
-        auth_token = os.getenv("SYNAPSE_AUTH_TOKEN")
-    elif os.getenv("SCHEDULED_JOB_SECRETS") is not None:
-        secrets = json.loads(os.getenv("SCHEDULED_JOB_SECRETS"))
-        auth_token = secrets["SYNAPSE_AUTH_TOKEN"]
-
-    return auth_token
-
-
 def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
     """Login to Synapse.  Looks for Synapse credentials in the following order:
     (1) SYNAPSE_AUTH_TOKEN environmental variable
@@ -167,9 +150,9 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
     """
     try:
         syn = synapseclient.Synapse(skip_checks=True, configPath=synapse_config)
-        auth_token = get_auth_token()
-        if auth_token is not None:
-            syn.login(silent=True, authToken=auth_token)
+        if os.getenv("SCHEDULED_JOB_SECRETS") is not None:
+            secrets = json.loads(os.getenv("SCHEDULED_JOB_SECRETS"))
+            syn.login(silent=True, authToken=secrets["SYNAPSE_AUTH_TOKEN"])
         else:
             syn.login(silent=True)
     except (SynapseNoCredentialsError, SynapseAuthenticationError):
