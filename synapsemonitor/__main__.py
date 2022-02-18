@@ -2,10 +2,9 @@
 """Command line client"""
 import argparse
 import logging
-import pandas as pd
-import sys
-import os
 import json
+import os
+import sys
 
 import pandas as pd
 import synapseclient
