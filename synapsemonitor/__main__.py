@@ -135,11 +135,7 @@ def build_parser():
 
 
 def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
-    """Login to Synapse.  Looks for Synapse credentials in the following order:
-    (1) SYNAPSE_AUTH_TOKEN environmental variable
-    (2) SCHEDULED_JOB_SECRETS environmental variable (contains SYNAPSE_AUTH_TOKEN
-        in JSON string)
-    (3) configuration file
+    """Login to Synapse.  Looks first for secrets.
 
     Args:
         synapse_config: Path to synapse configuration file.
