@@ -22,7 +22,6 @@ jobs:
         run: |
           pdoc3 --html synapsemonitor
       # Publish built docs to gh-pages branch.
-      # ===============================
       - name: Commit documentation changes
         run: |
           git clone https://github.com/Sage-Bionetworks/synapsemonitor --branch gh-pages --single-branch gh-pages
@@ -41,4 +40,3 @@ jobs:
           directory: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: true
-      # ===============================
