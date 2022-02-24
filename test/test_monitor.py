@@ -250,6 +250,50 @@ def test__find_modified_entities_file_modified():
         assert modified_list == ["syn234"]
 
 
+def test__find_modified_entities_file_hour_modified():
+    """Patch finding modified entities by hour"""
+    syn = Mock()
+    date_mod = (datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='hour')
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == ["syn234"]
+
+
+def test__find_modified_entities_file_hour_not_modified():
+    """Patch finding no modified entities by hour"""
+    syn = Mock()
+    date_mod = ((datetime.utcnow() - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")) 
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='hour')
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == []
+
+
+def test__find_modified_entities_file_minute_modified():
+    """Patch finding modified entities by minute"""
+    syn = Mock()
+    date_mod = (datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='minute')
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == ["syn234"]
+
+
+def test__find_modified_entities_file_minute_not_modified():
+    """Patch finding no modified entities by minute"""
+    syn = Mock()
+    date_mod = ((datetime.utcnow() - timedelta(minutes=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")) 
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='minute')
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == []
+
+
 def test__find_modified_entities_file_none():
     """Patch finding modified entities no modified"""
     syn = Mock()
