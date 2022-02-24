@@ -69,7 +69,9 @@ def _render_fileview(
     return viewdf
 
 
-def _find_modified_entities_fileview(syn: Synapse, syn_id: str, value: int = 1, unit: str = "day") -> list:
+def _find_modified_entities_fileview(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
     """Finds entities scoped in a fileview modified in the past {value} {unit}
 
     Args:
@@ -93,7 +95,9 @@ def _find_modified_entities_fileview(syn: Synapse, syn_id: str, value: int = 1, 
     return resultsdf["id"].tolist()
 
 
-def _find_modified_entities_file(syn: Synapse, syn_id: str, value: int = 1, unit: str = "day") -> list:
+def _find_modified_entities_file(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
     """Determines if entity was modified in the past {value} {unit}.
     Note: entity modifiedOn returns UTC time
 
@@ -117,7 +121,9 @@ def _find_modified_entities_file(syn: Synapse, syn_id: str, value: int = 1, unit
     elif unit == "minute":
         td = timedelta(minutes=value)
     else:
-        raise ValueError(f"'{unit}' is not an accepted time unit. Accepted units are 'day', 'hour', 'minute'.")
+        raise ValueError(
+            f"'{unit}' is not an accepted time unit. Accepted units are 'day', 'hour', 'minute'."
+        )
 
     if utc_mod > utc_now - td:
         return [syn_id]
@@ -189,7 +195,9 @@ def _traverse_root(
     return synid_desc
 
 
-def _find_modified_entities_container(syn: Synapse, syn_id: str, value: int = 1, unit: str = "day") -> list:
+def _find_modified_entities_container(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
     """Finds entities in a folder or project modified in the past {value} {unit}
 
     Args:
@@ -243,7 +251,9 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(syn: Synapse, syn_id: str, value: int = 1, unit: str = "day") -> list:
+def find_modified_entities(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
     """Find modified entities based on the type of the input
 
     Args:
@@ -257,11 +267,17 @@ def find_modified_entities(syn: Synapse, syn_id: str, value: int = 1, unit: str 
     """
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
-        return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, value=value, unit=unit)
+        return _find_modified_entities_fileview(
+            syn=syn, syn_id=syn_id, value=value, unit=unit
+        )
     elif isinstance(entity, (synapseclient.File, synapseclient.Schema)):
-        return _find_modified_entities_file(syn=syn, syn_id=syn_id, value=value, unit=unit)
+        return _find_modified_entities_file(
+            syn=syn, syn_id=syn_id, value=value, unit=unit
+        )
     elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
-        return _find_modified_entities_container(syn=syn, syn_id=syn_id, value=value, unit=unit)
+        return _find_modified_entities_container(
+            syn=syn, syn_id=syn_id, value=value, unit=unit
+        )
     else:
         raise ValueError(f"{type(entity)} not supported")
 
@@ -272,7 +288,7 @@ def monitoring(
     users: list = None,
     email_subject: str = "New Synapse Files",
     value: int = 1,
-    unit: str = 'day',
+    unit: str = "day",
 ) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
@@ -290,7 +306,9 @@ def monitoring(
         Dataframe with files modified within past {value} {unit}
     """
     # get dataframe of files
-    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, value=value, unit=unit)
+    modified_entities = find_modified_entities(
+        syn=syn, syn_id=syn_id, value=value, unit=unit
+    )
     # Filter out projects and folders
     logging.info(f"Total number of entities = {len(modified_entities)}")
 

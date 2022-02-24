@@ -114,7 +114,7 @@ def build_parser():
     parser_monitor.add_argument(
         "--unit",
         "-t",
-        choices=["day","hour","minute"],
+        choices=["day", "hour", "minute"],
         type=str,
         default="day",
         help="Find modifications to File entities in the last {value} {unit}. "

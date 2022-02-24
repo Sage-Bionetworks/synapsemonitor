@@ -10,7 +10,12 @@ class SynapseAction(ABC):
     """Base synapse action class"""
 
     def __init__(
-        self, syn: Synapse, syn_id: str, value: int = 1, unit: str = 'day', verbose: bool = False
+        self,
+        syn: Synapse,
+        syn_id: str,
+        value: int = 1,
+        unit: str = "day",
+        verbose: bool = False,
     ) -> None:
         self.syn = syn
         self.syn_id = syn_id
@@ -41,14 +46,16 @@ class EmailAction(SynapseAction):
         syn: Synapse,
         syn_id: str,
         value: int = 1,
-        unit: str = 'day',
+        unit: str = "day",
         verbose: bool = False,
         users: list = None,
         email_subject: str = "New Synapse Files",
     ):
         self.users = users
         self.email_subject = email_subject
-        super().__init__(syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose)
+        super().__init__(
+            syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose
+        )
 
     def _action(self, modified_entities: list) -> list:
         # get user ids
