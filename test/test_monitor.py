@@ -85,8 +85,8 @@ class TestModifiedContainer:
     def setup_method(self):
         self.syn = Mock()
         self.days = 1
-        self.now = datetime.now().replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self.past = (datetime.now().replace(tzinfo=tz.tzutc()) - timedelta(days=self.days+1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.past = (datetime.utcnow() - timedelta(days=self.days+1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.project = Project(name="test_project", id = "syn0", modifiedOn=self.now, parentId = "syn00")
         self.folder = Folder(name="test_folder", id = "syn1", modifiedOn=self.now, parentId = "syn0")
         self.file = File(name="test_file", id = "syn2", modifiedOn=self.now, parentId = "syn1")
@@ -240,9 +240,7 @@ class TestModifiedContainer:
 def test__find_modified_entities_file_modified():
     """Patch finding modified entities no modified"""
     syn = Mock()
-    date_mod = (
-        datetime.now().replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    )
+    date_mod = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
         modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='day')
@@ -264,7 +262,7 @@ def test__find_modified_entities_file_hour_modified():
 def test__find_modified_entities_file_hour_not_modified():
     """Patch finding no modified entities by hour"""
     syn = Mock()
-    date_mod = ((datetime.utcnow() - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")) 
+    date_mod = (datetime.utcnow() - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
         modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='hour')
@@ -275,7 +273,7 @@ def test__find_modified_entities_file_hour_not_modified():
 def test__find_modified_entities_file_minute_modified():
     """Patch finding modified entities by minute"""
     syn = Mock()
-    date_mod = (datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+    date_mod = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
         modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='minute')
@@ -286,7 +284,7 @@ def test__find_modified_entities_file_minute_modified():
 def test__find_modified_entities_file_minute_not_modified():
     """Patch finding no modified entities by minute"""
     syn = Mock()
-    date_mod = ((datetime.utcnow() - timedelta(minutes=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")) 
+    date_mod = (datetime.utcnow() - timedelta(minutes=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
         modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='minute')
@@ -298,8 +296,8 @@ def test__find_modified_entities_file_none():
     """Patch finding modified entities no modified"""
     syn = Mock()
     # create a modified date that is in the past
-    old_modified = datetime.now() - timedelta(days=3)
-    date_mod = old_modified.replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    old_modified = datetime.utcnow() - timedelta(days=3)
+    date_mod = old_modified.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
         modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='day')
