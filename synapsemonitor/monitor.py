@@ -110,6 +110,13 @@ def _find_modified_entities_file(
     Returns:
         List of synapse ids
     """
+
+    valid_units = ["day", "hour", "minute"]
+    if unit not in valid_units:
+        raise ValueError(
+            f"'{unit}' is not an accepted time unit. Accepted units: {valid_units}."
+        )
+
     entity = syn.get(syn_id, downloadFile=False)
     utc_mod = datetime.strptime(entity["modifiedOn"], "%Y-%m-%dT%H:%M:%S.%fZ")
     utc_now = datetime.utcnow()
@@ -120,10 +127,6 @@ def _find_modified_entities_file(
         td = timedelta(hours=value)
     elif unit == "minute":
         td = timedelta(minutes=value)
-    else:
-        raise ValueError(
-            f"'{unit}' is not an accepted time unit. Accepted units are 'day', 'hour', 'minute'."
-        )
 
     if utc_mod > utc_now - td:
         return [syn_id]
