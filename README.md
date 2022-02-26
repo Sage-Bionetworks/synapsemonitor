@@ -57,7 +57,7 @@ optional arguments:
                         Sets the subject heading of the email sent out. (default: New Synapse Files)
   --value value, -v value
                         Find modifications to File entities in the last {value} {unit}. (default: 1)
-  --unit {day,hour,minute}, -t {day,hour,minute}
+  --unit {day,hour}, -t {day,hour}
                         Find modifications to File entities in the last {value} {unit}. (default: day)
 ```
 
