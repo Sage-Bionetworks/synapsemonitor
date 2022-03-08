@@ -42,7 +42,7 @@ commands:
 Monitors Synapse entities for modifications and sends an email through the Synapse messaging system to the user specified when modified entities are detected. Prints a list of modified File entities.  If the specified entity is a container (Project or Folder), all descendant File entities are monitored.  If the specified entity is a File View, all contained enties are monitored.  
 
 ```
-usage: synapsemonitor monitor [-h] [--users USERS [USERS ...]] [--output OUTPUT] [--email_subject EMAIL_SUBJECT] [--value value] [--unit {day,hour,minute}] synapse_id
+usage: synapsemonitor monitor [-h] [--users USERS [USERS ...]] [--output OUTPUT] [--email_subject EMAIL_SUBJECT] [--value value] [--unit {day,hour}] synapse_id
 
 positional arguments:
   synapse_id            Synapse ID of entity to be monitored.
