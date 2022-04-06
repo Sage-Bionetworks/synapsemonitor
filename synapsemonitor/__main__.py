@@ -102,21 +102,22 @@ def build_parser():
         default="New Synapse Files",
         help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
-    parser_monitor.add_argument(
-        "--value",
-        "-v",
-        metavar="value",
+    timing_group = parser_monitor.add_mutually_exclusive_group()
+    timing_group.add_argument(
+        "--days",
+        "-d",
+        metavar="days",
         type=int,
         default=1,
-        help="Find modifications to File entities in the last {value} {unit}. "
+        help="Find modifications to File entities in the last N days. "
         "(default: %(default)s)",
     )
-    parser_monitor.add_argument(
-        "--unit",
-        "-t",
-        choices=["day", "hour"],
-        type=str,
-        default="day",
+    timing_group.add_argument(
+        "--rate",
+        "-r",
+        nargs=2,
+        metavar=("value", "unit"),
+        default=(1, "day"),
         help="Find modifications to File entities in the last {value} {unit}. "
         "(default: %(default)s)",
     )
@@ -171,7 +172,8 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
 
 def main():
     """Invoke"""
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
 
     numeric_level = getattr(logging, args.log.upper(), None)
     if not isinstance(numeric_level, int):
@@ -179,6 +181,22 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     syn = synapse_login(synapse_config=args.synapse_config)
+
+    if args.days != 1:
+        args.value = args.days
+        args.unit = 'day'
+    else:
+        args.value = int(args.rate[0])
+        if args.rate[1] in ['days','hours']:
+            args.unit = args.rate[1][0:-1]
+        elif args.rate[1] in ['day','hour']:
+            args.unit = args.rate[1]
+        else:
+            valid_units = ["day", "days", "hours", "hour"]
+            raise ValueError(
+                f"'{args.rate[1]}' is not an accepted time unit. Accepted units: {valid_units}."
+            )
+    
     args.func(syn, args)
 
 
