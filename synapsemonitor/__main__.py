@@ -184,19 +184,19 @@ def main():
 
     if args.days != 1:
         args.value = args.days
-        args.unit = 'day'
+        args.unit = "day"
     else:
         args.value = int(args.rate[0])
-        if args.rate[1] in ['days','hours']:
+        if args.rate[1] in ["days", "hours"]:
             args.unit = args.rate[1][0:-1]
-        elif args.rate[1] in ['day','hour']:
+        elif args.rate[1] in ["day", "hour"]:
             args.unit = args.rate[1]
         else:
             valid_units = ["day", "days", "hours", "hour"]
             raise ValueError(
                 f"'{args.rate[1]}' is not an accepted time unit. Accepted units: {valid_units}."
             )
-    
+
     args.func(syn, args)
 
 
