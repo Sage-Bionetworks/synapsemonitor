@@ -42,7 +42,7 @@ commands:
 Monitors Synapse entities for modifications and sends an email through the Synapse messaging system to the user specified when modified entities are detected. Prints a list of modified File entities.  If the specified entity is a container (Project or Folder), all descendant File entities are monitored.  If the specified entity is a File View, all contained enties are monitored.  
 
 ```
-usage: synapsemonitor monitor [-h] [--users USERS [USERS ...]] [--output OUTPUT] [--email_subject EMAIL_SUBJECT] [--value value] [--unit {day,hour}] synapse_id
+usage: synapsemonitor monitor [-h] [--users USERS [USERS ...]] [--output OUTPUT] [--email_subject EMAIL_SUBJECT] [--rate rate] synapse_id
 
 positional arguments:
   synapse_id            Synapse ID of entity to be monitored.
@@ -55,10 +55,7 @@ optional arguments:
                         Output modified entities into this csv file. (default: None)
   --email_subject EMAIL_SUBJECT, -e EMAIL_SUBJECT
                         Sets the subject heading of the email sent out. (default: New Synapse Files)
-  --value value, -v value
-                        Find modifications to File entities in the last {value} {unit}. (default: 1)
-  --unit {day,hour}, -t {day,hour}
-                        Find modifications to File entities in the last {value} {unit}. (default: day)
+  --rate rate, -r rate  Find modifications to File entities in the last {value} {unit}. (default: '1 day')
 ```
 
 ### Create File View

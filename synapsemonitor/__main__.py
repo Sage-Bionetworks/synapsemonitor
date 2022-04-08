@@ -24,8 +24,7 @@ def monitor_cli(syn, args):
         syn_id=args.synapse_id,
         email_subject=args.email_subject,
         users=args.users,
-        value=args.value,
-        unit=args.unit,
+        rate = args.rate,
     )
     action_results = actions.synapse_action(action_cls=email_action)
     ids = pd.DataFrame({"syn_id": action_results})
@@ -102,24 +101,14 @@ def build_parser():
         default="New Synapse Files",
         help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
-    timing_group = parser_monitor.add_mutually_exclusive_group()
-    timing_group.add_argument(
-        "--days",
-        "-d",
-        metavar="days",
-        type=int,
-        default=1,
-        help="Find modifications to File entities in the last N days. "
-        "(default: %(default)s)",
-    )
-    timing_group.add_argument(
+    parser_monitor.add_argument(
         "--rate",
         "-r",
-        nargs=2,
-        metavar=("value", "unit"),
-        default=(1, "day"),
+        metavar="rate",
+        type=str,
+        default="1 day",
         help="Find modifications to File entities in the last {value} {unit}. "
-        "(default: %(default)s)",
+        "(default: '%(default)s')",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
@@ -181,21 +170,6 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     syn = synapse_login(synapse_config=args.synapse_config)
-
-    if args.days != 1:
-        args.value = args.days
-        args.unit = "day"
-    else:
-        args.value = int(args.rate[0])
-        if args.rate[1] in ["days", "hours"]:
-            args.unit = args.rate[1][0:-1]
-        elif args.rate[1] in ["day", "hour"]:
-            args.unit = args.rate[1]
-        else:
-            valid_units = ["day", "days", "hours", "hour"]
-            raise ValueError(
-                f"'{args.rate[1]}' is not an accepted time unit. Accepted units: {valid_units}."
-            )
 
     args.func(syn, args)
 

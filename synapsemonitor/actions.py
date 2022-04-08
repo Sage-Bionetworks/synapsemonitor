@@ -13,14 +13,12 @@ class SynapseAction(ABC):
         self,
         syn: Synapse,
         syn_id: str,
-        value: int = 1,
-        unit: str = "day",
+        rate: str = "1 day", 
         verbose: bool = False,
     ) -> None:
         self.syn = syn
         self.syn_id = syn_id
-        self.value = value
-        self.unit = unit
+        self.rate = rate
         self.verbose = verbose
 
     @abstractmethod
@@ -30,7 +28,7 @@ class SynapseAction(ABC):
     def action(self):
         """Do action on list modified entities"""
         modified_entities = monitor.find_modified_entities(
-            syn=self.syn, syn_id=self.syn_id, value=self.value, unit=self.unit
+            syn=self.syn, syn_id=self.syn_id, rate=self.rate
         )
         action_result = self._action(modified_entities)
         if self.verbose:
@@ -45,8 +43,7 @@ class EmailAction(SynapseAction):
         self,
         syn: Synapse,
         syn_id: str,
-        value: int = 1,
-        unit: str = "day",
+        rate: str = "1 day",
         verbose: bool = False,
         users: list = None,
         email_subject: str = "New Synapse Files",
@@ -54,7 +51,7 @@ class EmailAction(SynapseAction):
         self.users = users
         self.email_subject = email_subject
         super().__init__(
-            syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose
+            syn=syn, syn_id=syn_id, rate=rate, verbose=verbose
         )
 
     def _action(self, modified_entities: list) -> list:
