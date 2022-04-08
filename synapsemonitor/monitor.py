@@ -252,9 +252,7 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(
-    syn: Synapse, syn_id: str, rate: str = "1 day"
-) -> list:
+def find_modified_entities(syn: Synapse, syn_id: str, rate: str = "1 day") -> list:
     """Find modified entities based on the type of the input
 
     Args:
@@ -267,7 +265,7 @@ def find_modified_entities(
         List of synapse ids
     """
     # get value and time unit from rate
-    [value, unit] = parse_rate(rate = rate)
+    [value, unit] = parse_rate(rate=rate)
 
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
@@ -286,8 +284,9 @@ def find_modified_entities(
         raise ValueError(f"{type(entity)} not supported")
 
 
-def parse_rate(rate: str, 
-    valid_units: typing.List[str] = ["day", "days", "hour", "hours"]) -> list:
+def parse_rate(
+    rate: str, valid_units: typing.List[str] = ["day", "days", "hour", "hours"]
+) -> list:
     """Parse value and time unit from rate string.
 
     Args:
@@ -305,10 +304,11 @@ def parse_rate(rate: str,
         )
 
     if unit in ["days", "hours"]:
-            unit = unit[0:-1]
+        unit = unit[0:-1]
     value = int(value)
 
     return [value, unit]
+
 
 def monitoring(
     syn: Synapse,
@@ -333,9 +333,7 @@ def monitoring(
     """
 
     # get dataframe of files
-    modified_entities = find_modified_entities(
-        syn=syn, syn_id=syn_id, rate=rate
-    )
+    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, rate=rate)
     # Filter out projects and folders
     logging.info(f"Total number of entities = {len(modified_entities)}")
 

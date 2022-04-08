@@ -13,7 +13,7 @@ class SynapseAction(ABC):
         self,
         syn: Synapse,
         syn_id: str,
-        rate: str = "1 day", 
+        rate: str = "1 day",
         verbose: bool = False,
     ) -> None:
         self.syn = syn
@@ -50,9 +50,7 @@ class EmailAction(SynapseAction):
     ):
         self.users = users
         self.email_subject = email_subject
-        super().__init__(
-            syn=syn, syn_id=syn_id, rate=rate, verbose=verbose
-        )
+        super().__init__(syn=syn, syn_id=syn_id, rate=rate, verbose=verbose)
 
     def _action(self, modified_entities: list) -> list:
         # get user ids

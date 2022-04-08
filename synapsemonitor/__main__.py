@@ -24,7 +24,7 @@ def monitor_cli(syn, args):
         syn_id=args.synapse_id,
         email_subject=args.email_subject,
         users=args.users,
-        rate = args.rate,
+        rate=args.rate,
     )
     action_results = actions.synapse_action(action_cls=email_action)
     ids = pd.DataFrame({"syn_id": action_results})
