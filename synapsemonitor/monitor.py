@@ -69,46 +69,64 @@ def _render_fileview(
     return viewdf
 
 
-def _find_modified_entities_fileview(syn: Synapse, syn_id: str, days: int = 1) -> list:
-    """Finds entities scoped in a fileview modified in the past N number of days
+def _find_modified_entities_fileview(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
+    """Finds entities scoped in a fileview modified in the past {value} {unit}
 
     Args:
         syn: Synapse connection
         syn_id: Synapse Fileview Id
-        days: N number of days
+        value: number of time units
+        unit: time unit
 
     Returns:
         List of synapse ids
     """
     # Update the view
     # _force_update_view(syn, view_id)
+
     query = (
         f"select id from {syn_id} where "
-        f"modifiedOn > unix_timestamp(NOW() - INTERVAL {days} DAY)*1000"
+        f"modifiedOn > unix_timestamp(NOW() - INTERVAL {value} {unit})*1000"
     )
     results = syn.tableQuery(query)
     resultsdf = results.asDataFrame()
     return resultsdf["id"].tolist()
 
 
-def _find_modified_entities_file(syn: Synapse, syn_id: str, days: int = 1) -> list:
-    """Determines if entity was modified in the past N number of days
+def _find_modified_entities_file(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
+    """Determines if entity was modified in the past {value} {unit}.
+    Note: entity modifiedOn returns UTC time
 
     Args:
         syn: Synapse connection
         syn_id: Synapse File Id
-        days: N number of days
+        value: number of time units
+        unit: time unit
 
     Returns:
         List of synapse ids
     """
+
+    valid_units = ["day", "hour"]
+    if unit not in valid_units:
+        raise ValueError(
+            f"'{unit}' is not an accepted time unit. Accepted units: {valid_units}."
+        )
+
     entity = syn.get(syn_id, downloadFile=False)
-    # Entity modified on returns UTC time
-    utc_mod = datetime.strptime(entity["modifiedOn"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(
-        tzinfo=tz.tzutc()
-    )
-    utc_now = datetime.now().replace(tzinfo=tz.tzutc())
-    if utc_mod > utc_now - timedelta(days=days):
+    utc_mod = datetime.strptime(entity["modifiedOn"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    utc_now = datetime.utcnow()
+
+    if unit == "day":
+        td = timedelta(days=value)
+    elif unit == "hour":
+        td = timedelta(hours=value)
+
+    if utc_mod > utc_now - td:
         return [syn_id]
     return []
 
@@ -178,13 +196,16 @@ def _traverse_root(
     return synid_desc
 
 
-def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) -> list:
-    """Finds entities in a folder or project modified in the past N number of days
+def _find_modified_entities_container(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
+    """Finds entities in a folder or project modified in the past {value} {unit}
 
     Args:
         syn: Synapse connection
         syn_id: Synapse Folder or Project Id
-        days: N number of days
+        value: number of time units
+        unit: time unit
 
     Returns:
         List of synapse ids
@@ -193,7 +214,7 @@ def _find_modified_entities_container(syn: Synapse, syn_id: str, days: int = 1) 
     syn_id_children = _traverse_root(syn, syn_id)
 
     for syn_id_child in syn_id_children:
-        syn_id_res = _find_modified_entities_file(syn, syn_id_child, days)
+        syn_id_res = _find_modified_entities_file(syn, syn_id_child, value, unit)
         if syn_id_res:
             syn_id_mod.extend(syn_id_res)
 
@@ -231,26 +252,62 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(syn: Synapse, syn_id: str, days: int) -> list:
+def find_modified_entities(syn: Synapse, syn_id: str, rate: str = "1 day") -> list:
     """Find modified entities based on the type of the input
 
     Args:
         syn: Synapse connection
         syn_id: Synapse Entity Id
-        days: N number of days
+        value: number of time units
+        unit: time unit
 
     Returns:
         List of synapse ids
     """
+    # get value and time unit from rate
+    [value, unit] = parse_rate(rate=rate)
+
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
-        return _find_modified_entities_fileview(syn=syn, syn_id=syn_id, days=days)
+        return _find_modified_entities_fileview(
+            syn=syn, syn_id=syn_id, value=value, unit=unit
+        )
     elif isinstance(entity, (synapseclient.File, synapseclient.Schema)):
-        return _find_modified_entities_file(syn=syn, syn_id=syn_id, days=days)
+        return _find_modified_entities_file(
+            syn=syn, syn_id=syn_id, value=value, unit=unit
+        )
     elif isinstance(entity, (synapseclient.Folder, synapseclient.Project)):
-        return _find_modified_entities_container(syn=syn, syn_id=syn_id, days=days)
+        return _find_modified_entities_container(
+            syn=syn, syn_id=syn_id, value=value, unit=unit
+        )
     else:
         raise ValueError(f"{type(entity)} not supported")
+
+
+def parse_rate(
+    rate: str, valid_units: typing.List[str] = ["day", "days", "hour", "hours"]
+) -> list:
+    """Parse value and time unit from rate string.
+
+    Args:
+        rate (str): string specifying rate at which to monitor
+
+    Returns:
+        [int, str]: integer value and time unit of rate
+    """
+
+    [value, unit] = rate.split(" ")
+
+    if unit not in valid_units:
+        raise ValueError(
+            f"'{unit}' is not an accepted time unit. Accepted units: {valid_units}."
+        )
+
+    if unit in ["days", "hours"]:
+        unit = unit[0:-1]
+    value = int(value)
+
+    return [value, unit]
 
 
 def monitoring(
@@ -258,7 +315,7 @@ def monitoring(
     syn_id: str,
     users: list = None,
     email_subject: str = "New Synapse Files",
-    days: int = 1,
+    rate: str = "1 day",
 ) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
@@ -269,13 +326,14 @@ def monitoring(
                If empty, defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (default: 'New Synapse Files')
-        days: Find modifications in the last N days (default: 1)
+        rate: String specifying rate
 
     Returns:
-        Dataframe with files modified within last N days
+        Dataframe with files modified within past {value} {unit}
     """
+
     # get dataframe of files
-    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, days=days)
+    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, rate=rate)
     # Filter out projects and folders
     logging.info(f"Total number of entities = {len(modified_entities)}")
 
