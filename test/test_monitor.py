@@ -66,11 +66,11 @@ class TestModifiedEntitiesFileView:
             # patch.object(monitor, "_render_fileview",
             #              return_value=self.expecteddf) as patch_render:
             modified_list = monitor._find_modified_entities_fileview(
-                self.syn, "syn44444", days=2
+                self.syn, "syn44444", value=2, unit='day'
             )
             patch_q.assert_called_once_with(
                 "select id from syn44444 where "
-                "modifiedOn > unix_timestamp(NOW() - INTERVAL 2 DAY)*1000"
+                "modifiedOn > unix_timestamp(NOW() - INTERVAL 2 day)*1000"
             )
             patch_asdf.assert_called_once_with()
             assert modified_list == ["syn23333"]
@@ -85,8 +85,8 @@ class TestModifiedContainer:
     def setup_method(self):
         self.syn = Mock()
         self.days = 1
-        self.now = datetime.now().replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self.past = (datetime.now().replace(tzinfo=tz.tzutc()) - timedelta(days=self.days+1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.past = (datetime.utcnow() - timedelta(days=self.days+1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.project = Project(name="test_project", id = "syn0", modifiedOn=self.now, parentId = "syn00")
         self.folder = Folder(name="test_folder", id = "syn1", modifiedOn=self.now, parentId = "syn0")
         self.file = File(name="test_file", id = "syn2", modifiedOn=self.now, parentId = "syn1")
@@ -184,7 +184,7 @@ class TestModifiedContainer:
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[self.folder["id"]]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
-                self.syn, self.folder["id"], days=self.days
+                self.syn, self.folder["id"], value=self.days, unit="day"
             )
             patch_get.assert_called()
             patch_child.assert_called()
@@ -198,7 +198,7 @@ class TestModifiedContainer:
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[self.project["id"]]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
-                self.syn, self.project["id"], days=self.days
+                self.syn, self.project["id"], value=self.days, unit="day"
             )
             patch_get.assert_called()
             patch_child.assert_called()
@@ -214,7 +214,7 @@ class TestModifiedContainer:
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
-                self.syn, "syn234", days=self.days
+                self.syn, "syn234", value=self.days, unit='day'
             )
             patch_get.assert_called()
             patch_child.assert_called()
@@ -230,7 +230,7 @@ class TestModifiedContainer:
             patch.object(monitor, "_find_modified_entities_file",
                          return_value=[]) as patch_child:
             modified_list = monitor._find_modified_entities_container(
-                self.syn, "syn234", days=self.days
+                self.syn, "syn234", value=self.days, unit='day'
             )
             patch_get.assert_called()
             patch_child.assert_called()
@@ -240,25 +240,45 @@ class TestModifiedContainer:
 def test__find_modified_entities_file_modified():
     """Patch finding modified entities no modified"""
     syn = Mock()
-    date_mod = (
-        datetime.now().replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    )
+    date_mod = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
-        modified_list = monitor._find_modified_entities_file(syn, "syn234", days=1)
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='day')
         patch_get.assert_called_once_with("syn234", downloadFile=False)
         assert modified_list == ["syn234"]
+
+
+def test__find_modified_entities_file_hour_modified():
+    """Patch finding modified entities by hour"""
+    syn = Mock()
+    date_mod = (datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='hour')
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == ["syn234"]
+
+
+def test__find_modified_entities_file_hour_not_modified():
+    """Patch finding no modified entities by hour"""
+    syn = Mock()
+    date_mod = (datetime.utcnow() - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    entity = File("test", "syn234", modifiedOn=date_mod)
+    with patch.object(syn, "get", return_value=entity) as patch_get:
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='hour')
+        patch_get.assert_called_once_with("syn234", downloadFile=False)
+        assert modified_list == []
 
 
 def test__find_modified_entities_file_none():
     """Patch finding modified entities no modified"""
     syn = Mock()
     # create a modified date that is in the past
-    old_modified = datetime.now() - timedelta(days=3)
-    date_mod = old_modified.replace(tzinfo=tz.tzutc()).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    old_modified = datetime.utcnow() - timedelta(days=3)
+    date_mod = old_modified.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     entity = File("test", "syn234", modifiedOn=date_mod)
     with patch.object(syn, "get", return_value=entity) as patch_get:
-        modified_list = monitor._find_modified_entities_file(syn, "syn234", days=1)
+        modified_list = monitor._find_modified_entities_file(syn, "syn234", value=1, unit='day')
         patch_get.assert_called_once_with("syn234", downloadFile=False)
         assert modified_list == []
 
@@ -294,7 +314,7 @@ def test_find_modified_entities_unsupported(entity, entity_type):
     with pytest.raises(
         ValueError, match=f".+synapseclient.entity.{entity_type}'> not supported"
     ), patch.object(syn, "get", return_value=entity):
-        monitor.find_modified_entities(syn=syn, syn_id="syn12345", days=1)
+        monitor.find_modified_entities(syn=syn, syn_id="syn12345", rate="1 day")
 
 
 def test_find_modified_entities_supported():
@@ -305,7 +325,7 @@ def test_find_modified_entities_supported():
     with patch.object(syn, "get", return_value=entity) as patch_get, patch.object(
         monitor, "_find_modified_entities_fileview", return_value=empty
     ) as patch_mod:
-        value = monitor.find_modified_entities(syn=syn, syn_id="syn12345", days=1)
+        value = monitor.find_modified_entities(syn=syn, syn_id="syn12345", rate="1 day")
         patch_get.assert_called_once_with("syn12345", downloadFile=False)
         patch_mod.assert_called_once()
         assert empty.equals(value)
@@ -332,9 +352,9 @@ class TestMonitoring:
                 "syn12345",
                 users=["2222", "fooo"],
                 email_subject="new subject",
-                days=15,
+                rate="15 day",
             )
-            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", days=15)
+            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", rate="15 day")
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
             patch_send.assert_called_once_with(
                 [111], "new subject", "syn2222, syn33333", contentType="text/html"

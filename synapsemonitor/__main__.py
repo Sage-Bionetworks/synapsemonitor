@@ -24,7 +24,7 @@ def monitor_cli(syn, args):
         syn_id=args.synapse_id,
         email_subject=args.email_subject,
         users=args.users,
-        days=args.days,
+        rate=args.rate,
     )
     action_results = actions.synapse_action(action_cls=email_action)
     ids = pd.DataFrame({"syn_id": action_results})
@@ -102,13 +102,13 @@ def build_parser():
         help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
     parser_monitor.add_argument(
-        "--days",
-        "-d",
-        metavar="days",
-        type=int,
-        default=1,
-        help="Find modifications to File entities in the last N days. "
-        "(default: %(default)s)",
+        "--rate",
+        "-r",
+        metavar="rate",
+        type=str,
+        default="1 day",
+        help="Find modifications to File entities in the last {value} {unit}. "
+        "(default: '%(default)s')",
     )
     parser_monitor.set_defaults(func=monitor_cli)
 
@@ -161,7 +161,8 @@ def synapse_login(synapse_config=synapseclient.client.CONFIG_FILE):
 
 def main():
     """Invoke"""
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
 
     numeric_level = getattr(logging, args.log.upper(), None)
     if not isinstance(numeric_level, int):
@@ -169,6 +170,7 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     syn = synapse_login(synapse_config=args.synapse_config)
+
     args.func(syn, args)
 
 
