@@ -252,7 +252,7 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(syn: Synapse, syn_id: str, rate: str = "1 day") -> list:
+def find_modified_entities(syn: Synapse, syn_id: str, value: int = 1, unit: str = "day") -> list:
     """Find modified entities based on the type of the input
 
     Args:
@@ -264,8 +264,6 @@ def find_modified_entities(syn: Synapse, syn_id: str, rate: str = "1 day") -> li
     Returns:
         List of synapse ids
     """
-    # get value and time unit from rate
-    [value, unit] = parse_rate(rate=rate)
 
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
@@ -284,38 +282,13 @@ def find_modified_entities(syn: Synapse, syn_id: str, rate: str = "1 day") -> li
         raise ValueError(f"{type(entity)} not supported")
 
 
-def parse_rate(
-    rate: str, valid_units: typing.List[str] = ["day", "days", "hour", "hours"]
-) -> list:
-    """Parse value and time unit from rate string.
-
-    Args:
-        rate (str): string specifying rate at which to monitor
-
-    Returns:
-        [int, str]: integer value and time unit of rate
-    """
-
-    [value, unit] = rate.split(" ")
-
-    if unit not in valid_units:
-        raise ValueError(
-            f"'{unit}' is not an accepted time unit. Accepted units: {valid_units}."
-        )
-
-    if unit in ["days", "hours"]:
-        unit = unit[0:-1]
-    value = int(value)
-
-    return [value, unit]
-
-
 def monitoring(
     syn: Synapse,
     syn_id: str,
     users: list = None,
     email_subject: str = "New Synapse Files",
-    rate: str = "1 day",
+    value: int = 1,
+    unit: str = "day",
 ) -> pd.DataFrame:
     """Monitor the modifications of an entity scoped by a Fileview.
 
@@ -326,14 +299,15 @@ def monitoring(
                If empty, defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (default: 'New Synapse Files')
-        rate: String specifying rate
+        value: number of time units
+        unit: time unit
 
     Returns:
         Dataframe with files modified within past {value} {unit}
     """
 
     # get dataframe of files
-    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, rate=rate)
+    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, value=value, unit=unit)
     # Filter out projects and folders
     logging.info(f"Total number of entities = {len(modified_entities)}")
 
