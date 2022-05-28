@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from multiprocessing.sharedctypes import Value
 from typing import Type
 
 from synapseclient import Synapse
