@@ -54,7 +54,9 @@ class EmailAction(SynapseAction):
     ):
         self.users = users
         self.email_subject = email_subject
-        super().__init__(syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose)
+        super().__init__(
+            syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose
+        )
 
     def _action(self, modified_entities: list) -> list:
         # get user ids

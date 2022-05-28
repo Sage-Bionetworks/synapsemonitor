@@ -252,7 +252,9 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(syn: Synapse, syn_id: str, value: int = 1, unit: str = "day") -> list:
+def find_modified_entities(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = "day"
+) -> list:
     """Find modified entities based on the type of the input
 
     Args:
@@ -307,7 +309,9 @@ def monitoring(
     """
 
     # get dataframe of files
-    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, value=value, unit=unit)
+    modified_entities = find_modified_entities(
+        syn=syn, syn_id=syn_id, value=value, unit=unit
+    )
     # Filter out projects and folders
     logging.info(f"Total number of entities = {len(modified_entities)}")
 
