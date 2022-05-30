@@ -281,7 +281,9 @@ def _get_user_ids(syn: Synapse, users: list = None):
     return user_ids
 
 
-def find_modified_entities(syn: Synapse, syn_id: str, rate: str = &#34;1 day&#34;) -&gt; list:
+def find_modified_entities(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = &#34;day&#34;
+) -&gt; list:
     &#34;&#34;&#34;Find modified entities based on the type of the input
 
     Args:
@@ -293,8 +295,6 @@ def find_modified_entities(syn: Synapse, syn_id: str, rate: str = &#34;1 day&#34
     Returns:
         List of synapse ids
     &#34;&#34;&#34;
-    # get value and time unit from rate
-    [value, unit] = parse_rate(rate=rate)
 
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
@@ -313,38 +313,13 @@ def find_modified_entities(syn: Synapse, syn_id: str, rate: str = &#34;1 day&#34
         raise ValueError(f&#34;{type(entity)} not supported&#34;)
 
 
-def parse_rate(
-    rate: str, valid_units: typing.List[str] = [&#34;day&#34;, &#34;days&#34;, &#34;hour&#34;, &#34;hours&#34;]
-) -&gt; list:
-    &#34;&#34;&#34;Parse value and time unit from rate string.
-
-    Args:
-        rate (str): string specifying rate at which to monitor
-
-    Returns:
-        [int, str]: integer value and time unit of rate
-    &#34;&#34;&#34;
-
-    [value, unit] = rate.split(&#34; &#34;)
-
-    if unit not in valid_units:
-        raise ValueError(
-            f&#34;&#39;{unit}&#39; is not an accepted time unit. Accepted units: {valid_units}.&#34;
-        )
-
-    if unit in [&#34;days&#34;, &#34;hours&#34;]:
-        unit = unit[0:-1]
-    value = int(value)
-
-    return [value, unit]
-
-
 def monitoring(
     syn: Synapse,
     syn_id: str,
     users: list = None,
     email_subject: str = &#34;New Synapse Files&#34;,
-    rate: str = &#34;1 day&#34;,
+    value: int = 1,
+    unit: str = &#34;day&#34;,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;Monitor the modifications of an entity scoped by a Fileview.
 
@@ -355,14 +330,17 @@ def monitoring(
                If empty, defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (default: &#39;New Synapse Files&#39;)
-        rate: String specifying rate
+        value: number of time units
+        unit: time unit
 
     Returns:
         Dataframe with files modified within past {value} {unit}
     &#34;&#34;&#34;
 
     # get dataframe of files
-    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, rate=rate)
+    modified_entities = find_modified_entities(
+        syn=syn, syn_id=syn_id, value=value, unit=unit
+    )
     # Filter out projects and folders
     logging.info(f&#34;Total number of entities = {len(modified_entities)}&#34;)
 
@@ -445,7 +423,7 @@ FOLDER, VIEW, DOCKER.</p>
 </details>
 </dd>
 <dt id="synapsemonitor.monitor.find_modified_entities"><code class="name flex">
-<span>def <span class="ident">find_modified_entities</span></span>(<span>syn: synapseclient.client.Synapse, syn_id: str, rate: str = '1 day') ‑> list</span>
+<span>def <span class="ident">find_modified_entities</span></span>(<span>syn: synapseclient.client.Synapse, syn_id: str, value: int = 1, unit: str = 'day') ‑> list</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Find modified entities based on the type of the input</p>
@@ -466,7 +444,9 @@ FOLDER, VIEW, DOCKER.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find_modified_entities(syn: Synapse, syn_id: str, rate: str = &#34;1 day&#34;) -&gt; list:
+<pre><code class="python">def find_modified_entities(
+    syn: Synapse, syn_id: str, value: int = 1, unit: str = &#34;day&#34;
+) -&gt; list:
     &#34;&#34;&#34;Find modified entities based on the type of the input
 
     Args:
@@ -478,8 +458,6 @@ FOLDER, VIEW, DOCKER.</p>
     Returns:
         List of synapse ids
     &#34;&#34;&#34;
-    # get value and time unit from rate
-    [value, unit] = parse_rate(rate=rate)
 
     entity = syn.get(syn_id, downloadFile=False)
     if isinstance(entity, synapseclient.EntityViewSchema):
@@ -499,7 +477,7 @@ FOLDER, VIEW, DOCKER.</p>
 </details>
 </dd>
 <dt id="synapsemonitor.monitor.monitoring"><code class="name flex">
-<span>def <span class="ident">monitoring</span></span>(<span>syn: synapseclient.client.Synapse, syn_id: str, users: list = None, email_subject: str = 'New Synapse Files', rate: str = '1 day') ‑> pandas.core.frame.DataFrame</span>
+<span>def <span class="ident">monitoring</span></span>(<span>syn: synapseclient.client.Synapse, syn_id: str, users: list = None, email_subject: str = 'New Synapse Files', value: int = 1, unit: str = 'day') ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Monitor the modifications of an entity scoped by a Fileview.</p>
@@ -515,8 +493,10 @@ If empty, defaults to current logged in Synapse user.</dd>
 <dt><strong><code>email_subject</code></strong></dt>
 <dd>Sets the subject heading of the email sent out.
 (default: 'New Synapse Files')</dd>
-<dt><strong><code>rate</code></strong></dt>
-<dd>String specifying rate</dd>
+<dt><strong><code>value</code></strong></dt>
+<dd>number of time units</dd>
+<dt><strong><code>unit</code></strong></dt>
+<dd>time unit</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>Dataframe with files modified within past {value} {unit}</p></div>
@@ -529,7 +509,8 @@ If empty, defaults to current logged in Synapse user.</dd>
     syn_id: str,
     users: list = None,
     email_subject: str = &#34;New Synapse Files&#34;,
-    rate: str = &#34;1 day&#34;,
+    value: int = 1,
+    unit: str = &#34;day&#34;,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;Monitor the modifications of an entity scoped by a Fileview.
 
@@ -540,14 +521,17 @@ If empty, defaults to current logged in Synapse user.</dd>
                If empty, defaults to current logged in Synapse user.
         email_subject: Sets the subject heading of the email sent out.
                        (default: &#39;New Synapse Files&#39;)
-        rate: String specifying rate
+        value: number of time units
+        unit: time unit
 
     Returns:
         Dataframe with files modified within past {value} {unit}
     &#34;&#34;&#34;
 
     # get dataframe of files
-    modified_entities = find_modified_entities(syn=syn, syn_id=syn_id, rate=rate)
+    modified_entities = find_modified_entities(
+        syn=syn, syn_id=syn_id, value=value, unit=unit
+    )
     # Filter out projects and folders
     logging.info(f&#34;Total number of entities = {len(modified_entities)}&#34;)
 
@@ -565,51 +549,6 @@ If empty, defaults to current logged in Synapse user.</dd>
             contentType=&#34;text/html&#34;,
         )
     return modified_entities</code></pre>
-</details>
-</dd>
-<dt id="synapsemonitor.monitor.parse_rate"><code class="name flex">
-<span>def <span class="ident">parse_rate</span></span>(<span>rate: str, valid_units: List[str] = ['day', 'days', 'hour', 'hours']) ‑> list</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Parse value and time unit from rate string.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>rate</code></strong> :&ensp;<code>str</code></dt>
-<dd>string specifying rate at which to monitor</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>[int, str]</code></dt>
-<dd>integer value and time unit of rate</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def parse_rate(
-    rate: str, valid_units: typing.List[str] = [&#34;day&#34;, &#34;days&#34;, &#34;hour&#34;, &#34;hours&#34;]
-) -&gt; list:
-    &#34;&#34;&#34;Parse value and time unit from rate string.
-
-    Args:
-        rate (str): string specifying rate at which to monitor
-
-    Returns:
-        [int, str]: integer value and time unit of rate
-    &#34;&#34;&#34;
-
-    [value, unit] = rate.split(&#34; &#34;)
-
-    if unit not in valid_units:
-        raise ValueError(
-            f&#34;&#39;{unit}&#39; is not an accepted time unit. Accepted units: {valid_units}.&#34;
-        )
-
-    if unit in [&#34;days&#34;, &#34;hours&#34;]:
-        unit = unit[0:-1]
-    value = int(value)
-
-    return [value, unit]</code></pre>
 </details>
 </dd>
 </dl>
@@ -633,7 +572,6 @@ If empty, defaults to current logged in Synapse user.</dd>
 <li><code><a title="synapsemonitor.monitor.create_file_view" href="#synapsemonitor.monitor.create_file_view">create_file_view</a></code></li>
 <li><code><a title="synapsemonitor.monitor.find_modified_entities" href="#synapsemonitor.monitor.find_modified_entities">find_modified_entities</a></code></li>
 <li><code><a title="synapsemonitor.monitor.monitoring" href="#synapsemonitor.monitor.monitoring">monitoring</a></code></li>
-<li><code><a title="synapsemonitor.monitor.parse_rate" href="#synapsemonitor.monitor.parse_rate">parse_rate</a></code></li>
 </ul>
 </li>
 </ul>

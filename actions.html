@@ -41,12 +41,14 @@ class SynapseAction(ABC):
         self,
         syn: Synapse,
         syn_id: str,
-        rate: str = &#34;1 day&#34;,
+        value: int = 1,
+        unit: str = &#34;day&#34;,
         verbose: bool = False,
     ) -&gt; None:
         self.syn = syn
         self.syn_id = syn_id
-        self.rate = rate
+        self.value = value
+        self.unit = unit
         self.verbose = verbose
 
     @abstractmethod
@@ -56,7 +58,7 @@ class SynapseAction(ABC):
     def action(self):
         &#34;&#34;&#34;Do action on list modified entities&#34;&#34;&#34;
         modified_entities = monitor.find_modified_entities(
-            syn=self.syn, syn_id=self.syn_id, rate=self.rate
+            syn=self.syn, syn_id=self.syn_id, value=self.value, unit=self.unit
         )
         action_result = self._action(modified_entities)
         if self.verbose:
@@ -71,14 +73,17 @@ class EmailAction(SynapseAction):
         self,
         syn: Synapse,
         syn_id: str,
-        rate: str = &#34;1 day&#34;,
+        value: int = 1,
+        unit: str = &#34;day&#34;,
         verbose: bool = False,
         users: list = None,
         email_subject: str = &#34;New Synapse Files&#34;,
     ):
         self.users = users
         self.email_subject = email_subject
-        super().__init__(syn=syn, syn_id=syn_id, rate=rate, verbose=verbose)
+        super().__init__(
+            syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose
+        )
 
     def _action(self, modified_entities: list) -&gt; list:
         # get user ids
@@ -153,7 +158,7 @@ def synapse_action(action_cls: Type[SynapseAction]):
 <dl>
 <dt id="synapsemonitor.actions.EmailAction"><code class="flex name class">
 <span>class <span class="ident">EmailAction</span></span>
-<span>(</span><span>syn: synapseclient.client.Synapse, syn_id: str, rate: str = '1 day', verbose: bool = False, users: list = None, email_subject: str = 'New Synapse Files')</span>
+<span>(</span><span>syn: synapseclient.client.Synapse, syn_id: str, value: int = 1, unit: str = 'day', verbose: bool = False, users: list = None, email_subject: str = 'New Synapse Files')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This action emails specified users with modified entities</p></div>
@@ -168,14 +173,17 @@ def synapse_action(action_cls: Type[SynapseAction]):
         self,
         syn: Synapse,
         syn_id: str,
-        rate: str = &#34;1 day&#34;,
+        value: int = 1,
+        unit: str = &#34;day&#34;,
         verbose: bool = False,
         users: list = None,
         email_subject: str = &#34;New Synapse Files&#34;,
     ):
         self.users = users
         self.email_subject = email_subject
-        super().__init__(syn=syn, syn_id=syn_id, rate=rate, verbose=verbose)
+        super().__init__(
+            syn=syn, syn_id=syn_id, value=value, unit=unit, verbose=verbose
+        )
 
     def _action(self, modified_entities: list) -&gt; list:
         # get user ids
@@ -209,7 +217,7 @@ def synapse_action(action_cls: Type[SynapseAction]):
 </dd>
 <dt id="synapsemonitor.actions.SynapseAction"><code class="flex name class">
 <span>class <span class="ident">SynapseAction</span></span>
-<span>(</span><span>syn: synapseclient.client.Synapse, syn_id: str, rate: str = '1 day', verbose: bool = False)</span>
+<span>(</span><span>syn: synapseclient.client.Synapse, syn_id: str, value: int = 1, unit: str = 'day', verbose: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Base synapse action class</p></div>
@@ -224,12 +232,14 @@ def synapse_action(action_cls: Type[SynapseAction]):
         self,
         syn: Synapse,
         syn_id: str,
-        rate: str = &#34;1 day&#34;,
+        value: int = 1,
+        unit: str = &#34;day&#34;,
         verbose: bool = False,
     ) -&gt; None:
         self.syn = syn
         self.syn_id = syn_id
-        self.rate = rate
+        self.value = value
+        self.unit = unit
         self.verbose = verbose
 
     @abstractmethod
@@ -239,7 +249,7 @@ def synapse_action(action_cls: Type[SynapseAction]):
     def action(self):
         &#34;&#34;&#34;Do action on list modified entities&#34;&#34;&#34;
         modified_entities = monitor.find_modified_entities(
-            syn=self.syn, syn_id=self.syn_id, rate=self.rate
+            syn=self.syn, syn_id=self.syn_id, value=self.value, unit=self.unit
         )
         action_result = self._action(modified_entities)
         if self.verbose:
@@ -268,7 +278,7 @@ def synapse_action(action_cls: Type[SynapseAction]):
 <pre><code class="python">def action(self):
     &#34;&#34;&#34;Do action on list modified entities&#34;&#34;&#34;
     modified_entities = monitor.find_modified_entities(
-        syn=self.syn, syn_id=self.syn_id, rate=self.rate
+        syn=self.syn, syn_id=self.syn_id, value=self.value, unit=self.unit
     )
     action_result = self._action(modified_entities)
     if self.verbose:
