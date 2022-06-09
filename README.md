@@ -55,7 +55,11 @@ optional arguments:
                         Output modified entities into this csv file. (default: None)
   --email_subject EMAIL_SUBJECT, -e EMAIL_SUBJECT
                         Sets the subject heading of the email sent out. (default: New Synapse Files)
-  --rate rate, -r rate  Find modifications to File entities in the last {value} {unit}. (default: '1 day')
+  --value value, -v value
+                        Find modifications to File entities in the last
+                        {value} {unit}. (default: 1)
+  --unit unit, -t unit  Find modifications to File entities in the last
+                        {value} {unit}. (default: 'day')
 ```
 
 ### Create File View
