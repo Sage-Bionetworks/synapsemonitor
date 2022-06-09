@@ -314,7 +314,7 @@ def test_find_modified_entities_unsupported(entity, entity_type):
     with pytest.raises(
         ValueError, match=f".+synapseclient.entity.{entity_type}'> not supported"
     ), patch.object(syn, "get", return_value=entity):
-        monitor.find_modified_entities(syn=syn, syn_id="syn12345", rate="1 day")
+        monitor.find_modified_entities(syn=syn, syn_id="syn12345", value=1, unit="day")
 
 
 def test_find_modified_entities_supported():
@@ -325,7 +325,7 @@ def test_find_modified_entities_supported():
     with patch.object(syn, "get", return_value=entity) as patch_get, patch.object(
         monitor, "_find_modified_entities_fileview", return_value=empty
     ) as patch_mod:
-        value = monitor.find_modified_entities(syn=syn, syn_id="syn12345", rate="1 day")
+        value = monitor.find_modified_entities(syn=syn, syn_id="syn12345", value=1, unit="day")
         patch_get.assert_called_once_with("syn12345", downloadFile=False)
         patch_mod.assert_called_once()
         assert empty.equals(value)
@@ -352,9 +352,10 @@ class TestMonitoring:
                 "syn12345",
                 users=["2222", "fooo"],
                 email_subject="new subject",
-                rate="15 day",
+                value=15,
+                unit="day",
             )
-            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", rate="15 day")
+            patch_find.assert_called_once_with(syn=self.syn, syn_id="syn12345", value=15, unit="day")
             patch_get_user.assert_called_once_with(self.syn, ["2222", "fooo"])
             patch_send.assert_called_once_with(
                 [111], "new subject", "syn2222, syn33333", contentType="text/html"

@@ -24,7 +24,8 @@ def monitor_cli(syn, args):
         syn_id=args.synapse_id,
         email_subject=args.email_subject,
         users=args.users,
-        rate=args.rate,
+        value=args.value,
+        unit=args.unit,
     )
     action_results = actions.synapse_action(action_cls=email_action)
     ids = pd.DataFrame({"syn_id": action_results})
@@ -102,11 +103,21 @@ def build_parser():
         help="Sets the subject heading of the email sent out. (default: %(default)s)",
     )
     parser_monitor.add_argument(
-        "--rate",
-        "-r",
-        metavar="rate",
+        "--value",
+        "-v",
+        metavar="value",
+        type=int,
+        default=1,
+        help="Find modifications to File entities in the last {value} {unit}. "
+        "(default: %(default)s)",
+    )
+    parser_monitor.add_argument(
+        "--unit",
+        "-t",
+        metavar="unit",
         type=str,
-        default="1 day",
+        choices=["day", "hour"],
+        default="day",
         help="Find modifications to File entities in the last {value} {unit}. "
         "(default: '%(default)s')",
     )
